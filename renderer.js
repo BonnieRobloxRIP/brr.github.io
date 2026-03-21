@@ -286,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailExistingContent = document.getElementById('detail-existing-content');
   const detailInputsContent = document.getElementById('detail-inputs-content');
   const detailTabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+  const detailTabContainer = document.querySelector('.tab-container');
   const detailTabContents = {
     info: document.getElementById('tab-info'),
     outputs: document.getElementById('tab-outputs'),
@@ -443,6 +444,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fallbackIcon = getFallbackIcon(entry);
     const notes = Array.isArray(entry.notes) ? entry.notes : [];
 
+    const classInfoSection = entry?.classInfoConfigurable === false
+      ? '<p class="detail-muted">This block is not configurable in the addon. No class-info fields are available.</p>'
+      : buildListHtml(entry.classInfo);
+
     return `
       <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
         <div class="card-top" style="width: 96px; min-width: 96px; min-height: 96px;">
@@ -463,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p class="detail-muted">${escapeHtml(entry.example || 'No example available.')}</p>
 
       <h3 class="section-title">Class Info Fields</h3>
-      ${buildListHtml(entry.classInfo)}
+      ${classInfoSection}
 
       ${notes.length > 0 ? `<h3 class="section-title">Notes</h3>${buildListHtml(notes)}` : ''}
     `;
@@ -540,6 +545,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return Boolean(button) && button.style.display !== 'none';
   }
 
+  function getFirstVisibleDetailTab() {
+    const firstVisible = detailTabButtons.find(btn => btn.style.display !== 'none');
+    return firstVisible?.dataset?.tab || 'info';
+  }
+
   function setDetailTabVisibility(tabName, visible) {
     const button = detailTabButtons.find(btn => btn.dataset.tab === tabName);
     const content = detailTabContents[tabName];
@@ -549,11 +559,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateDetailTabs(entry) {
+    const supportsInfo = entry?.showInfoTab !== false;
     const supportsOutputs = entry?.supportsOutputs !== false;
+    const supportsInputs = entry?.supportsInputs !== false;
     setDetailTabVisibility('outputs', supportsOutputs);
     setDetailTabVisibility('existing', supportsOutputs);
-    setDetailTabVisibility('info', true);
-    setDetailTabVisibility('inputs', true);
+    setDetailTabVisibility('info', supportsInfo);
+    setDetailTabVisibility('inputs', supportsInputs);
+
+    if (detailTabContainer) {
+      const visibleCount = detailTabButtons.filter(btn => btn.style.display !== 'none').length;
+      detailTabContainer.style.display = visibleCount > 0 ? '' : 'none';
+    }
   }
 
   window.openDetailView = function (blockId) {
@@ -568,13 +585,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (detailExistingContent) detailExistingContent.innerHTML = buildExistingOutputsHtmlForEntry(entry);
     if (detailInputsContent) detailInputsContent.innerHTML = buildInputsHtmlForEntry(entry);
 
-    switchTab('info');
+    switchTab(getFirstVisibleDetailTab());
     navigateTo('detail-screen');
   };
 
   window.switchTab = function (tabName) {
     if (!isDetailTabVisible(tabName)) {
-      tabName = 'info';
+      tabName = getFirstVisibleDetailTab();
     }
 
     document.querySelectorAll('.tab-content').forEach(el => {
@@ -1265,74 +1282,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function buildRareSteps() {
     const currentTheme = normalizeThemeKey(document.body.getAttribute('data-theme') || 'dark');
-    const includeAdditionalError = Math.random() < 0.7;
-    const includeCriticalFakeout = Math.random() < 0.45;
 
     const incidentPool = getThemeAwarePool(rareMessageCatalog.namedIncidentMessages, currentTheme, 'namedIncidentMessages');
-    const recoveryPool = getThemeAwarePool(rareMessageCatalog.recoveryMessages, currentTheme, 'recoveryMessages');
 
     const incidentMessage = pickRandomMessage('rare_incident', incidentPool);
     const primaryReport = pickRandomMessage('rare_primary', rareMessageCatalog.primaryErrorReports);
-    const additionalReport = pickRandomMessage('rare_additional', rareMessageCatalog.additionalErrors);
-    const criticalFakeout = pickRandomMessage('rare_critical', rareMessageCatalog.criticalFakeoutMessages);
-    const recoveryOne = pickRandomMessage('rare_recovery_1', recoveryPool);
-    const recoveryTwo = pickRandomMessage('rare_recovery_2', recoveryPool);
-    const recoveryDetailOne = pickRandomMessage('rare_recovery_detail_1', rareMessageCatalog.recoveryDetails);
-    const recoveryDetailTwo = pickRandomMessage('rare_recovery_detail_2', rareMessageCatalog.recoveryDetails);
 
-    const steps = [
+    return [
       {
         title: 'Error',
-        text: rareMessageCatalog.alwaysSequence[0],
-        detail: `Incident marker: ${incidentMessage}`
-      },
-      {
-        title: 'Named Incident',
-        text: incidentMessage,
-        detail: 'Collecting fault context...'
-      },
-      {
-        title: rareMessageCatalog.alwaysSequence[2],
         text: primaryReport,
-        detail: 'Metadata stream checksum mismatch.'
+        detail: `Incident marker: ${incidentMessage}`
       }
     ];
-
-    if (includeAdditionalError) {
-      steps.push({
-        title: 'Additional Error',
-        text: additionalReport,
-        detail: 'Static relay returned invalid response.'
-      });
-    }
-
-    if (includeCriticalFakeout) {
-      steps.push({
-        title: 'Critical',
-        text: criticalFakeout,
-        detail: 'Emergency fallback channel warmup pending.'
-      });
-    }
-
-    steps.push(
-      {
-        title: 'Recovery',
-        text: recoveryOne,
-        detail: recoveryDetailOne
-      },
-      {
-        title: 'Recovery',
-        text: recoveryTwo,
-        detail: recoveryDetailTwo
-      },
-      {
-        title: 'Complete',
-        text: rareMessageCatalog.alwaysSequence[1],
-        detail: 'Recovered from transient fault. Returning to session.'
-      }
-    );
-
-    return steps;
   }
 
   function buildPreRareBoxes() {
@@ -1524,23 +1486,23 @@ document.addEventListener('DOMContentLoaded', () => {
         rareScreen.classList.add('active');
 
         renderRareStep(rareSteps[0]);
-        messageTimer = window.setInterval(() => {
-          rareStepIndex += 1;
-          if (rareStepIndex >= rareSteps.length) {
-            window.clearInterval(messageTimer);
-            return;
-          }
-          renderRareStep(rareSteps[rareStepIndex]);
-        }, 540);
+        if (rareSteps.length > 1) {
+          messageTimer = window.setInterval(() => {
+            rareStepIndex += 1;
+            if (rareStepIndex >= rareSteps.length) {
+              window.clearInterval(messageTimer);
+              return;
+            }
+            renderRareStep(rareSteps[rareStepIndex]);
+          }, 540);
+        }
       }, fullCoverHoldMs);
     }, preBuildDurationMs);
 
     const distortionTimer = window.setInterval(() => {
-      const xShift = ((Math.random() - 0.5) * 12).toFixed(2);
-      const yShift = ((Math.random() - 0.5) * 8).toFixed(2);
       const hueShift = Math.floor((Math.random() - 0.5) * 34);
-      document.documentElement.style.setProperty('--rare-shift-x', `${xShift}px`);
-      document.documentElement.style.setProperty('--rare-shift-y', `${yShift}px`);
+      document.documentElement.style.setProperty('--rare-shift-x', '0px');
+      document.documentElement.style.setProperty('--rare-shift-y', '0px');
       document.documentElement.style.setProperty('--rare-hue-shift', `${hueShift}deg`);
     }, 70);
 
