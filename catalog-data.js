@@ -60,22 +60,30 @@ window.BSECatalog = (() => {
     {
       id: "info_playerspawn",
       name: "Info Playerspawn",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Defines world spawn and optional player spawn behavior.",
-      usage: "Use this to set the map spawn setup.",
-      example: "Set lobby spawn and optionally apply it to players too.",
-      classInfo: [...defaultClassInfo]
+      category: "Logic",
+      menuGroup: "logic",
+      summary: "Defines spawn behavior for the map using world spawn and optional per-player spawn points.",
+      usage: "Use one active playerspawn block at a time. Set world spawn at block or coordinates, then optionally set player spawn points too.",
+      example: "Set your lobby as global spawn and optionally force each player spawnpoint to that location.",
+      classInfo: [
+        ...defaultClassInfo,
+        "World Spawn At Block: <boolean> - true uses this block location as world spawn.",
+        "World Spawn: <x y z> - coordinate string used when World Spawn At Block is false.",
+        "Set Player Spawn Point: <boolean> - when true, updates player spawn points to this location."
+      ]
     },
     {
       id: "info_target_areaportal",
       name: "Info Target AreaPortal",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Named destination marker for area portal links.",
-      usage: "Create named anchors that area portals can target.",
-      example: "Make destination Arena_A and send multiple portals to it.",
-      classInfo: [...defaultClassInfo]
+      category: "Logic",
+      menuGroup: "logic",
+      summary: "Named destination marker block used by Area Portal destination-block routing.",
+      usage: "Give it a unique name, then set Area Portal destination block to that name.",
+      example: "Name this block Arena_Entry and route several area portals to it.",
+      classInfo: [
+        ...defaultClassInfo,
+        "Facing Direction: <string> - optional orientation metadata for destination behavior."
+      ]
     },
     {
       id: "tool_playerclip",
@@ -85,16 +93,23 @@ window.BSECatalog = (() => {
       summary: "Blocks players while allowing configured exceptions.",
       usage: "Use gamemode, operator, or selector-based exclusions.",
       example: "Allow only creative builders to pass through a blocked zone.",
-      classInfo: [...defaultClassInfo]
+      supportsOutputs: false,
+      classInfo: [
+        ...defaultClassInfo,
+        "Exclude Operators: <boolean> - operators can pass through when true.",
+        "Exclude Gamemode: <none|survival|creative|adventure|spectator> - players in this gamemode are ignored.",
+        "Exclude Selector: <selector|string> - matching players are ignored by clip behavior."
+      ]
     },
     {
       id: "tool_invisible",
       name: "Tool Invisible",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Invisible collision helper block.",
-      usage: "Use for invisible pass or collision utility behavior.",
+      summary: "Invisible collision helper block that can be toggled active/inactive.",
+      usage: "Use to create invisible collision boundaries controlled by Start Disabled.",
       example: "Build invisible boundaries for map flow.",
+      supportsOutputs: false,
       classInfo: [...defaultClassInfo]
     },
     {
@@ -102,14 +117,15 @@ window.BSECatalog = (() => {
       name: "Tool Blocklight",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Invisible utility block used for light-support placement.",
-      usage: "Acts as a hidden support block with blocklight behavior.",
-      example: "Create lit invisible helper regions.",
+      summary: "Utility block that only blocks light when enabled.",
+      usage: "Use as an invisible blocklight helper. It has no output system and only supports basic toggling.",
+      example: "Place in hidden seams to stop light leak paths.",
+      supportsOutputs: false,
       classInfo: [...defaultClassInfo]
     },
     {
       id: "game_nametag",
-      name: "game_nametag",
+      name: "Game Nametag",
       category: "Game",
       menuGroup: "game",
       summary: "Creates custom nametag labels used in usernames and chat prefixes.",
