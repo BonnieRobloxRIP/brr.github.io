@@ -1,23 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
   // --- UI ELEMENTS
   const searchInput = document.getElementById('searchInput');
+  const catalogFilter = document.getElementById('catalogFilter');
 
-  // --- AUDIO & EFFECTS ELEMENTS
-  const staticSound = document.getElementById('staticSound');
-  const rareSound = document.getElementById('rareSound');
+  // --- VISUAL EFFECTS ELEMENTS
   const rareScreen = document.getElementById('rare-screen');
+  const rareTitle = document.getElementById('rare-title');
+  const rareText = document.getElementById('rare-text');
+  const rareSubtext = document.getElementById('rare-subtext');
   const flickerOverlay = document.getElementById('flicker-overlay');
   const glitchClone = document.getElementById('glitch-clone');
 
-  // --- EASTER EGG ELEMENTS
-  const footerTrigger = document.getElementById('footer-trigger');
-  const versionTag = document.getElementById('version-tag');
+  // --- THEME PICKER ELEMENTS
+  const themePicker = document.getElementById('theme-picker');
+  const themeOptions = Array.from(document.querySelectorAll('.theme-option'));
+  const themeConfirmBtn = document.getElementById('theme-confirm-btn');
+  const themeCancelBtn = document.getElementById('theme-cancel-btn');
+  const themeSettingsBtn = document.getElementById('theme-btn');
   const bootOverlay = document.getElementById('boot-overlay');
   const bootStatus = document.getElementById('boot-status');
+  const THEME_STORAGE_KEY = 'bse_theme';
+  const THEME_PICKER_VERSION_KEY = 'bse_theme_picker_version';
+  const THEME_PICKER_VERSION = 'v2';
+  const allowedThemes = new Set(['light', 'dark', 'blackmesa', 'xen']);
 
   let appBootIsReady = false;
-  let splashHasFinished = false;
   let hasBootRevealRun = false;
+  let bootRevealTimestamp = 0;
+  let themePickerCanDismiss = false;
+  let themeBeforePicker = null;
 
   function setBootStatus(message) {
     if (!bootStatus || !message) return;
@@ -35,26 +46,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function tryRevealApp() {
-    if (hasBootRevealRun || !appBootIsReady || !splashHasFinished) return;
+    if (hasBootRevealRun || !appBootIsReady) return;
     hasBootRevealRun = true;
 
     waitForNextPaint().then(() => {
+      bootRevealTimestamp = Date.now();
       document.body.classList.add('app-ready');
       document.body.classList.remove('app-booting');
+
+      if (flickerOverlay) {
+        flickerOverlay.style.opacity = '0';
+      }
 
       if (bootOverlay) {
         bootOverlay.setAttribute('aria-busy', 'false');
       }
+
+      window.setTimeout(() => {
+        const hasTheme = Boolean(getStoredTheme());
+        const shouldShowThemePicker = !hasTheme || !hasSeenCurrentThemePicker();
+
+        if (shouldShowThemePicker) {
+          openThemePicker(false);
+        }
+      }, 160);
     });
   }
 
   function markAppBootReady() {
     appBootIsReady = true;
-    tryRevealApp();
-  }
-
-  function markSplashFinished() {
-    splashHasFinished = true;
     tryRevealApp();
   }
 
@@ -109,31 +129,123 @@ document.addEventListener('DOMContentLoaded', () => {
   attachMediaQueryListener(coarsePointerQuery, syncEffectProfile);
   syncEffectProfile();
 
-  // --- AUDIO
-  function safePlay(audioElem) {
-    if (!audioElem) return;
-    if (audioElem.readyState >= 1 || (audioElem.currentSrc && audioElem.currentSrc !== '')) {
-      const playPromise = audioElem.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(e => {
-          console.warn(`Audio play suppressed for ${audioElem.id}:`, e.message);
-        });
+  // --- THEME SYSTEM
+  function normalizeThemeKey(theme) {
+    if (theme === 'egg') return 'blackmesa';
+    return allowedThemes.has(theme) ? theme : 'dark';
+  }
+
+  function getStoredTheme() {
+    try {
+      const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+      return saved ? normalizeThemeKey(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function hasSeenCurrentThemePicker() {
+    try {
+      return window.localStorage.getItem(THEME_PICKER_VERSION_KEY) === THEME_PICKER_VERSION;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markThemePickerSeen() {
+    try {
+      window.localStorage.setItem(THEME_PICKER_VERSION_KEY, THEME_PICKER_VERSION);
+    } catch (e) {
+      // Ignore storage restrictions in private/incognito contexts.
+    }
+  }
+
+  function setThemeSelectionState(theme) {
+    themeOptions.forEach(option => {
+      option.classList.toggle('selected', option.dataset.theme === theme);
+      option.setAttribute('aria-pressed', option.dataset.theme === theme ? 'true' : 'false');
+    });
+  }
+
+  function applyTheme(theme, persist = false) {
+    const selectedTheme = normalizeThemeKey(theme);
+    document.body.setAttribute('data-theme', selectedTheme);
+    setThemeSelectionState(selectedTheme);
+
+    if (persist) {
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+      } catch (e) {
+        // Ignore storage failures (private mode / strict browser settings).
       }
     }
   }
 
-  // Initialize Static Loop
-  try {
-    if (staticSound) {
-      staticSound.volume = 0.05;
-      const p = staticSound.play();
-      if (p !== undefined) {
-        p.catch(() => {
-          document.addEventListener('click', () => safePlay(staticSound), { once: true });
-        });
-      }
+  function openThemePicker(canDismiss) {
+    if (!themePicker) return;
+    themeBeforePicker = document.body.getAttribute('data-theme') || 'dark';
+    themePickerCanDismiss = Boolean(canDismiss);
+    themePicker.dataset.dismissible = themePickerCanDismiss ? 'true' : 'false';
+    themePicker.classList.add('active');
+  }
+
+  function closeThemePicker() {
+    if (!themePicker) return;
+    themePicker.classList.remove('active');
+  }
+
+  function initThemePicker() {
+    const storedTheme = getStoredTheme();
+    const initialTheme = storedTheme || 'dark';
+
+    applyTheme(initialTheme, false);
+
+    if (!themePicker) return;
+    themeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const previewTheme = option.dataset.theme;
+        applyTheme(previewTheme, false);
+      });
+    });
+
+    if (themeConfirmBtn) {
+      themeConfirmBtn.addEventListener('click', () => {
+        const pickedTheme = document.body.getAttribute('data-theme') || 'dark';
+        applyTheme(pickedTheme, true);
+        markThemePickerSeen();
+        closeThemePicker();
+      });
     }
-  } catch (e) { console.warn(e); }
+
+    if (themeCancelBtn) {
+      themeCancelBtn.addEventListener('click', () => {
+        if (themeBeforePicker) {
+          applyTheme(themeBeforePicker, false);
+        }
+        markThemePickerSeen();
+        closeThemePicker();
+      });
+    }
+
+    if (themePicker) {
+      themePicker.addEventListener('click', (event) => {
+        if (event.target === themePicker && themePickerCanDismiss) {
+          closeThemePicker();
+        }
+      });
+    }
+
+    if (themeSettingsBtn) {
+      themeSettingsBtn.addEventListener('click', () => {
+        applyTheme(document.body.getAttribute('data-theme') || initialTheme, false);
+        openThemePicker(true);
+      });
+    }
+
+    window.openThemePicker = () => openThemePicker(true);
+  }
+
+  initThemePicker();
 
 
   // --- SCREEN NAVIGATION SYSTEM
@@ -183,10 +295,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const blockCatalog = Array.isArray(catalogSource.entries) ? catalogSource.entries : [];
   const menuLabels = {
+    all: 'All Blocks',
     tools: 'Tools & Blocks',
     brushes: 'Brushes & Environment',
     logic: 'Logic Blocks',
     game: 'Game & Mode Blocks'
+  };
+
+  const emptyMessages = {
+    all: 'There are no public entries loaded yet.',
+    tools: 'There are no tools or blocks here yet. More are coming soon.',
+    brushes: 'There are no brush blocks here yet. More are coming soon.',
+    logic: 'There are no logic blocks here yet. More are coming soon.',
+    game: 'There are no game blocks here yet. More are coming soon.'
   };
 
   let currentMenuGroup = 'tools';
@@ -208,11 +329,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const categoryFallbackIcons = {
     Tools: 'assets/brr_trigger.png',
-    Brushes: 'assets/brr_skybox.png',
-    Logic: 'assets/logic_auto.png',
-    Game: 'assets/game_round_win.png',
-    Environment: 'assets/env_particles.png',
-    Internal: 'assets/brr_nodraw.png'
+    Brushes: 'assets/missing_texture.png',
+    Logic: 'assets/missing_texture.png',
+    Game: 'assets/missing_texture.png',
+    Environment: 'assets/missing_texture.png',
+    Internal: 'assets/missing_texture.png'
   };
 
   function getFallbackIcon(entry) {
@@ -248,7 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getFilteredCatalog() {
     return blockCatalog
-      .filter(entry => (currentMenuGroup === 'tools' ? true : entry.menuGroup === currentMenuGroup))
+      .filter(entry => {
+        if (currentMenuGroup === 'all') return true;
+        return entry.menuGroup === currentMenuGroup;
+      })
       .filter(entry => {
         if (!currentSearchTerm) return true;
 
@@ -270,6 +394,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (catalogEmpty) {
       catalogEmpty.style.display = filtered.length === 0 ? 'block' : 'none';
+      catalogEmpty.textContent = currentSearchTerm
+        ? 'No blocks match your current search.'
+        : (emptyMessages[currentMenuGroup] || emptyMessages.all);
     }
 
     filtered.forEach(entry => {
@@ -390,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentSearchTerm = '';
 
     if (searchInput) searchInput.value = '';
+    if (catalogFilter) catalogFilter.value = menuGroup;
 
     setToolsSubtitle(menuGroup);
     renderCatalog();
@@ -408,6 +536,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSearchTerm = nextValue;
         renderCatalog();
       }, 70);
+    });
+  }
+
+  if (catalogFilter) {
+    catalogFilter.addEventListener('change', (event) => {
+      currentMenuGroup = event.target.value || 'all';
+      setToolsSubtitle(currentMenuGroup);
+      renderCatalog();
     });
   }
 
@@ -459,19 +595,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function runBootSequence(backgroundReadyPromise) {
+    async function runBootStage(message, work, minimumStageDurationMs) {
+      const stageStartedAt = Date.now();
+      setBootStatus(message);
+      await waitForNextPaint();
+
+      if (work) {
+        await work;
+      }
+
+      const elapsed = Date.now() - stageStartedAt;
+      if (elapsed < minimumStageDurationMs) {
+        await wait(minimumStageDurationMs - elapsed);
+      }
+    }
+
     try {
-      setBootStatus('Building catalog...');
-      await waitForNextPaint();
-
-      setBootStatus('Preloading assets...');
-      await preloadBootAssets();
-
-      setBootStatus('Warming background...');
-      await Promise.race([backgroundReadyPromise, wait(2200)]);
-
-      setBootStatus('Finalizing interface...');
-      await waitForNextPaint();
-      await waitForNextPaint();
+      await runBootStage('Building catalog...', null, 700);
+      await runBootStage('Preloading assets...', preloadBootAssets(), 850);
+      await runBootStage('Warming background...', Promise.race([backgroundReadyPromise, wait(2200)]), 750);
+      await runBootStage('Finalizing interface...', (async () => {
+        await waitForNextPaint();
+        await waitForNextPaint();
+      })(), 650);
     } catch (e) {
       console.warn('Boot sequence fallback:', e);
     } finally {
@@ -480,6 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setToolsSubtitle(currentMenuGroup);
+  if (catalogFilter) catalogFilter.value = currentMenuGroup;
   renderCatalog();
 
   // --- BACKGROUND SYSTEM
@@ -798,55 +945,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateWelcomeMessage();
 
-  // --- EASTER EGG
-  let eggStep = 0;
-  if (footerTrigger && versionTag) {
-    footerTrigger.addEventListener('click', () => {
-      eggStep = 1;
-    });
-
-    versionTag.addEventListener('click', () => {
-      if (eggStep === 1) {
-        document.body.classList.add('egg-active');
-        eggStep = 0;
-
-        // Disable global filter
-        document.documentElement.style.filter = 'none';
-
-        // --- FLICKER EFFECT SEQUENCE ---
-        // Wait 4 seconds, then start flickering
-        setTimeout(() => {
-          let flickerCount = 0;
-          const maxFlickers = 6; // How many times it blinks
-
-          const flickerInterval = setInterval(() => {
-            // Toggle class
-            document.body.classList.toggle('egg-active');
-
-            // Toggle filter
-            if (document.body.classList.contains('egg-active')) {
-              document.documentElement.style.filter = 'none';
-            } else {
-              document.documentElement.style.filter = ''; // Reset to CSS default
-            }
-
-            flickerCount++;
-            if (flickerCount >= maxFlickers) {
-              clearInterval(flickerInterval);
-              // Ensure it ends OFF
-              document.body.classList.remove('egg-active');
-              document.documentElement.style.filter = '';
-            }
-          }, 200); // Blink every 200ms
-        }, 4000); // Start flickering after 4 seconds
-      }
-    });
-  }
-
   window.triggerPowerOff = function () {
-    // Placeholder for MP4 logic
-    alert("System Shutdown Sequence Initiated... [MP4 Placeholder]");
     window.close();
+    if (!window.closed) {
+      window.location.href = 'about:blank';
+    }
   };
 
 
@@ -855,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const glitchBars = [];
   let maxGlitchBars = effectProfile.maxGlitchBars;
   let flickerTimeoutId = null;
+  let flickerStarted = false;
   let staticNoiseTimeoutId = null;
   let rareScreenIntervalId = null;
 
@@ -941,7 +1045,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const randomDelay = Math.random() * effectProfile.flickerDelayRange + effectProfile.flickerDelayMin;
 
     flickerTimeoutId = window.setTimeout(() => {
-      if (!document.hidden && flickerOverlay && !effectProfile.reduceMotion) {
+      if (!flickerStarted) return;
+
+      const isBootCooldown = bootRevealTimestamp > 0 && (Date.now() - bootRevealTimestamp) < 4200;
+
+      if (!isBootCooldown && !document.hidden && flickerOverlay && !effectProfile.reduceMotion) {
         const opacity = Math.random() * effectProfile.flickerOpacityRange + effectProfile.flickerOpacityMin;
         flickerOverlay.style.opacity = `${opacity}`;
         window.setTimeout(() => {
@@ -950,34 +1058,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const glitchChance = effectProfile.reduceMotion ? 0.28 : (effectProfile.isMobileLike ? 0.55 : 0.75);
-      if (!document.hidden && Math.random() < glitchChance) {
+      if (!isBootCooldown && !document.hidden && Math.random() < glitchChance) {
         triggerShredderGlitch();
       }
 
       scheduleFlicker();
     }, randomDelay);
   }
-  scheduleFlicker();
 
-  function updateStaticNoise() {
-    if (document.hidden) {
-      if (staticSound) staticSound.volume = 0;
+  function startFlickerAfterBoot() {
+    if (flickerStarted) return;
+
+    if (hasBootRevealRun) {
+      flickerStarted = true;
+      window.setTimeout(scheduleFlicker, 1200);
       return;
     }
 
-    const noiseLevel = effectProfile.staticMin + (Math.random() * effectProfile.staticRange);
-
-    if (staticSound) {
-      staticSound.volume = Math.max(0, Math.min(0.2, noiseLevel * 0.55));
-    }
+    const waitForBootReveal = window.setInterval(() => {
+      if (!hasBootRevealRun) return;
+      window.clearInterval(waitForBootReveal);
+      flickerStarted = true;
+      window.setTimeout(scheduleFlicker, 1200);
+    }, 80);
   }
 
-  function scheduleStaticNoise() {
-    updateStaticNoise();
-    staticNoiseTimeoutId = window.setTimeout(scheduleStaticNoise, effectProfile.staticIntervalMs);
-  }
-
-  scheduleStaticNoise();
+  startFlickerAfterBoot();
 
   function scheduleRareScreen() {
     if (rareScreenIntervalId) {
@@ -999,113 +1105,221 @@ document.addEventListener('DOMContentLoaded', () => {
       window.clearTimeout(flickerTimeoutId);
     }
 
-    if (staticNoiseTimeoutId) {
-      window.clearTimeout(staticNoiseTimeoutId);
-    }
-
     if (rareScreenIntervalId) {
       window.clearInterval(rareScreenIntervalId);
     }
   });
 
+  const rareMessageCatalog = {
+    alwaysSequence: [
+      'brr function destabalizing',
+      'System restored',
+      'Control Panel Error'
+    ],
+    namedIncidentMessages: [
+      'Resonance cascade',
+      'Taco Item',
+      'Purple Retard',
+      'Life Linked',
+      'Aliens Attacked',
+      'brr_message_here',
+      'Yellow Rabbit',
+      'Signal Desynchronizing',
+      'Renderer Handshake Failed'
+    ],
+    primaryErrorReports: [
+      'event_run.mcfunction failure',
+      'mispelled mcfunction file',
+      'missing registries',
+      'wrong format_version',
+      '[redacted] - brr tech',
+      'subspaced',
+      'max has a lemon',
+      'they stole the redstone again',
+      'dino found a way to traverse space and time',
+      'failed to prevent pvp at spawn area',
+      "there's nothing wrong in ba sing se",
+      "there's nothing wrong, relax",
+      'i got life linked to bonnie again, brb',
+      'Fallback Channel Corrupted'
+    ],
+    additionalErrors: [
+      'event_run tps slowdown',
+      '20ms slowdown',
+      'lobby.mcfunction failure'
+    ],
+    criticalFakeoutMessages: [
+      'Diagnostic Memory Spill',
+      'Kernel Collapse Imminent',
+      'Emergency Halt Requested'
+    ],
+    recoveryMessages: [
+      'Fixing Error States',
+      'Rebooting Interface'
+    ],
+    recoveryDetails: [
+      'Rebuilding visual pipeline and cache index...',
+      'Applying safe profile and restoring controls...'
+    ],
+    // Reserved for future theme-specific incidents/recovery copy.
+    themeSpecific: {
+      light: { namedIncidentMessages: [], recoveryMessages: [] },
+      dark: { namedIncidentMessages: [], recoveryMessages: [] },
+      blackmesa: { namedIncidentMessages: [], recoveryMessages: [] },
+      xen: { namedIncidentMessages: [], recoveryMessages: [] }
+    }
+  };
 
-  // --- RARE SCREEN
+  function pickRandomMessage(poolKey, messages) {
+    return pickNonRepeatingMessage(poolKey, messages);
+  }
+
+  function getThemeAwarePool(basePool, currentTheme, poolName) {
+    const themeOverrides = rareMessageCatalog.themeSpecific[currentTheme]?.[poolName];
+    if (!Array.isArray(themeOverrides) || themeOverrides.length === 0) {
+      return basePool;
+    }
+
+    return [...basePool, ...themeOverrides];
+  }
+
+  function buildRareSteps() {
+    const currentTheme = normalizeThemeKey(document.body.getAttribute('data-theme') || 'dark');
+    const includeAdditionalError = Math.random() < 0.7;
+    const includeCriticalFakeout = Math.random() < 0.45;
+
+    const incidentPool = getThemeAwarePool(rareMessageCatalog.namedIncidentMessages, currentTheme, 'namedIncidentMessages');
+    const recoveryPool = getThemeAwarePool(rareMessageCatalog.recoveryMessages, currentTheme, 'recoveryMessages');
+
+    const incidentMessage = pickRandomMessage('rare_incident', incidentPool);
+    const primaryReport = pickRandomMessage('rare_primary', rareMessageCatalog.primaryErrorReports);
+    const additionalReport = pickRandomMessage('rare_additional', rareMessageCatalog.additionalErrors);
+    const criticalFakeout = pickRandomMessage('rare_critical', rareMessageCatalog.criticalFakeoutMessages);
+    const recoveryOne = pickRandomMessage('rare_recovery_1', recoveryPool);
+    const recoveryTwo = pickRandomMessage('rare_recovery_2', recoveryPool);
+    const recoveryDetailOne = pickRandomMessage('rare_recovery_detail_1', rareMessageCatalog.recoveryDetails);
+    const recoveryDetailTwo = pickRandomMessage('rare_recovery_detail_2', rareMessageCatalog.recoveryDetails);
+
+    const steps = [
+      {
+        title: 'Error',
+        text: rareMessageCatalog.alwaysSequence[0],
+        detail: `Incident marker: ${incidentMessage}`
+      },
+      {
+        title: 'Named Incident',
+        text: incidentMessage,
+        detail: 'Collecting fault context...'
+      },
+      {
+        title: rareMessageCatalog.alwaysSequence[2],
+        text: primaryReport,
+        detail: 'Metadata stream checksum mismatch.'
+      }
+    ];
+
+    if (includeAdditionalError) {
+      steps.push({
+        title: 'Additional Error',
+        text: additionalReport,
+        detail: 'Static relay returned invalid response.'
+      });
+    }
+
+    if (includeCriticalFakeout) {
+      steps.push({
+        title: 'Critical',
+        text: criticalFakeout,
+        detail: 'Emergency fallback channel warmup pending.'
+      });
+    }
+
+    steps.push(
+      {
+        title: 'Recovery',
+        text: recoveryOne,
+        detail: recoveryDetailOne
+      },
+      {
+        title: 'Recovery',
+        text: recoveryTwo,
+        detail: recoveryDetailTwo
+      },
+      {
+        title: 'Complete',
+        text: rareMessageCatalog.alwaysSequence[1],
+        detail: 'Recovered from transient fault. Returning to session.'
+      }
+    );
+
+    return steps;
+  }
+
+
   function triggerRareScreen() {
     if (!rareScreen) return;
+    if (document.body.classList.contains('rare-distorting')) return;
 
-    // 1. Audio & Tunnel Effect
-    if (rareSound) {
-      rareSound.currentTime = 0;
-      rareSound.volume = 0.5;
-      safePlay(rareSound);
+    document.body.classList.add('rare-distorting');
+    rareScreen.classList.add('active');
+
+    const screenElement = document.querySelector('.screen.active');
+    const globalNav = document.getElementById('global-nav');
+    const footer = document.querySelector('.footer');
+    const versionTag = document.getElementById('version-tag');
+
+    if (screenElement) screenElement.style.pointerEvents = 'none';
+    if (globalNav) globalNav.style.pointerEvents = 'none';
+    if (footer) footer.style.pointerEvents = 'none';
+    if (versionTag) versionTag.style.pointerEvents = 'none';
+
+    const rareSteps = buildRareSteps();
+
+    let rareStepIndex = 0;
+    function renderRareStep(step) {
+      if (!step) return;
+      if (rareTitle) rareTitle.textContent = step.title;
+      if (rareText) rareText.textContent = step.text;
+      if (rareSubtext) rareSubtext.textContent = step.detail;
     }
 
-    // Add tunnel class to body or a wrapper
-    document.body.classList.add('tunnel-effect');
+    renderRareStep(rareSteps[0]);
 
-    // 2. Start Black Bars
-    setTimeout(() => {
-      let barCount = 0;
-      const maxBars = 40;
-      const interval = setInterval(() => {
-        const bar = document.createElement('div');
-        bar.classList.add('black-bar');
-        bar.style.width = (Math.random() * 60 + 40) + '%';
-        bar.style.height = (Math.random() * 15 + 5) + '%';
-        bar.style.top = (Math.random() * 100) + '%';
-        bar.style.left = (Math.random() * 100 - 20) + '%';
-        document.body.appendChild(bar);
+    const messageTimer = window.setInterval(() => {
+      rareStepIndex += 1;
+      if (rareStepIndex >= rareSteps.length) {
+        window.clearInterval(messageTimer);
+        return;
+      }
+      renderRareStep(rareSteps[rareStepIndex]);
+    }, 540);
 
-        barCount++;
-        if (barCount >= maxBars) {
-          clearInterval(interval);
-          finalizeRareScreen();
-        }
-      }, 80); // Fast spawn
-    }, 2000); // Start bars after 2s of tunneling
+    const distortionTimer = window.setInterval(() => {
+      const xShift = ((Math.random() - 0.5) * 12).toFixed(2);
+      const yShift = ((Math.random() - 0.5) * 8).toFixed(2);
+      const hueShift = Math.floor((Math.random() - 0.5) * 34);
+      document.documentElement.style.setProperty('--rare-shift-x', `${xShift}px`);
+      document.documentElement.style.setProperty('--rare-shift-y', `${yShift}px`);
+      document.documentElement.style.setProperty('--rare-hue-shift', `${hueShift}deg`);
+    }, 70);
 
-    function finalizeRareScreen() {
-      // Create full cover
-      const fullCover = document.createElement('div');
-      fullCover.classList.add('black-bar');
-      fullCover.style.inset = '0';
-      fullCover.style.width = '100%';
-      fullCover.style.height = '100%';
-      document.body.appendChild(fullCover);
+    window.setTimeout(() => {
+      window.clearInterval(distortionTimer);
+      window.clearInterval(messageTimer);
+      document.body.classList.remove('rare-distorting');
+      rareScreen.classList.remove('active');
+      document.documentElement.style.setProperty('--rare-shift-x', '0px');
+      document.documentElement.style.setProperty('--rare-shift-y', '0px');
+      document.documentElement.style.setProperty('--rare-hue-shift', '0deg');
 
-      // Stop tunnel effect so "Please Stand By" is flat
-      document.body.classList.remove('tunnel-effect');
-      document.body.style.transform = 'none';
+      if (rareTitle) rareTitle.textContent = 'System Error';
+      if (rareText) rareText.textContent = 'Signal Desynchronizing';
+      if (rareSubtext) rareSubtext.textContent = 'Collecting fault context...';
 
-      // Show Rare Screen (Z-Index is fixed in CSS now)
-      rareScreen.classList.add('active');
-
-      // Reset after 3 seconds
-      setTimeout(() => {
-        rareScreen.classList.remove('active');
-
-        // Remove all bars
-        document.querySelectorAll('.black-bar').forEach(b => b.remove());
-
-        // Clean transforms
-        document.body.style.transform = '';
-
-      }, 3000);
-    }
-  }
-
-  // --- STARTUP VIDEO LOGIC ---
-  const video = document.getElementById('startup-video');
-  const startupScreen = document.getElementById('startup-screen'); // Old white line screen
-
-  function finalizeStartupSplash() {
-    if (video) {
-      video.style.display = 'none';
-    }
-    markSplashFinished();
-  }
-
-  if (video) {
-    // Hide old screen immediately
-    if (startupScreen) startupScreen.style.display = 'none';
-
-    video.style.display = 'block';
-
-    // Play video
-    video.play().catch(e => {
-      console.warn("Video autoplay blocked:", e);
-      finalizeStartupSplash();
-    });
-
-    video.onended = () => {
-      finalizeStartupSplash();
-    };
-
-    // Safety timeout (5.5s) in case video stalls
-    setTimeout(() => {
-      if (video.style.display !== 'none') finalizeStartupSplash();
-    }, 5500);
-  } else {
-    markSplashFinished();
+      if (screenElement) screenElement.style.pointerEvents = '';
+      if (globalNav) globalNav.style.pointerEvents = '';
+      if (footer) footer.style.pointerEvents = '';
+      if (versionTag) versionTag.style.pointerEvents = '';
+    }, 3200);
   }
 });
