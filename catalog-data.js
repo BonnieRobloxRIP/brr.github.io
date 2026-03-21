@@ -43,10 +43,26 @@ window.BSECatalog = (() => {
       name: "Trigger",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Detects entities or players and conditionally executes commands.",
-      usage: "Use this for touch or logic triggers with condition checks and outputs.",
-      example: "Run an action only when a tagged player enters a trigger zone.",
-      classInfo: [...defaultClassInfo]
+      summary: "Runs conditional trigger logic when players are inside the block and can fire onTrue/onFalse outputs.",
+      usage: "Set condition type + values and optional command, then wire outputs to named target blocks.",
+      example: "If a player in the trigger passes the condition, run command and fire onTrue outputs.",
+      outputTemplate: [
+        "Output Name: <string> - identifier for this output entry.",
+        "Output Type: <onTrue|onFalse> - event fired by trigger condition result.",
+        "Output Target: <named block> - block name to receive this output.",
+        "Target Class Info: <dropdown> - target property to update.",
+        "Target Info Value: <string|boolean|number> - value to assign to the target property.",
+        "Delay (in ticks): <int> - wait time before this output is applied."
+      ],
+      classInfo: [
+        "Name: <string> - unique name used by outputs and references.",
+        "Start Disabled: <boolean> - when true, trigger logic is inactive.",
+        "Execute on Condition: <condition key> - selected condition used for evaluation.",
+        "Condition Value 1: <string> - first condition value (depends on chosen condition).",
+        "Condition Value 2: <string> - second condition value (optional).",
+        "Condition Value 3: <string> - third condition value (optional).",
+        "Run Command: <string> - command executed on onTrue when condition passes."
+      ]
     },
     {
       id: "tool_areaportal",
@@ -107,11 +123,15 @@ window.BSECatalog = (() => {
       name: "NPC Clip",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Blocks NPCs while leaving players and other map logic unaffected.",
-      usage: "Use this to create NPC-only boundaries with the same simple toggle behavior as the other tool blocks.",
-      example: "Keep wandering NPCs inside a patrol zone without blocking player movement.",
+      summary: "Repels non-player entities from the clip volume while leaving players unaffected.",
+      usage: "Use Name, Start disabled, and optional Exclude Selector to allow specific NPC/entity targets through.",
+      example: "Keep hostile mobs out of a safe zone except entities matched by the exclude selector.",
       supportsOutputs: false,
-      classInfo: [...defaultClassInfo]
+      classInfo: [
+        "Name: <string> - unique name used by links and references.",
+        "Start Disabled: <boolean> - when true, repel/collision behavior is inactive.",
+        "Exclude Selector: <selector|string> - matching entities are ignored by NPC clip behavior."
+      ]
     },
     {
       id: "tool_invisible",
@@ -129,21 +149,33 @@ window.BSECatalog = (() => {
       name: "Blocklight",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Utility block that only blocks light when enabled.",
-      usage: "Use as an invisible blocklight helper. It has no output system and only supports basic toggling.",
-      example: "Place in hidden seams to stop light leak paths.",
+      summary: "Hidden light-dampening block used to stop light leaks (light dampening 15).",
+      usage: "Place as a utility helper. This block has no configurable class-info fields in the addon UI.",
+      example: "Use inside walls/ceilings to block unwanted light bleed.",
       supportsOutputs: false,
-      classInfo: [...defaultClassInfo]
+      supportsInputs: false,
+      classInfoConfigurable: false,
+      classInfo: []
     },
     {
       id: "game_nametag",
       name: "Game Nametag",
       category: "Game",
       menuGroup: "game",
-      summary: "Creates custom nametag labels used in usernames and chat prefixes.",
-      usage: "Configure custom label behavior for chat and nametag presentation.",
-      example: "Show a lobby or event label beside a player's name.",
-      classInfo: [...defaultClassInfo]
+      summary: "Applies ordered nametag tags to selected players for username and/or chat display.",
+      usage: "Configure prefix/suffix toggles, target selector, tag text, and order, then optionally wire outputs.",
+      example: "Add a [Lobby] prefix in usernames and chat for players matched by @a[tag=lobby].",
+      classInfo: [
+        "Name: <string> - unique name used by outputs and references.",
+        "Start Disabled: <boolean> - when true, this nametag block is inactive.",
+        "Works in Usernames: <boolean> - apply tag to player display names.",
+        "Works in Chat: <boolean> - apply tag to chat prefix/suffix formatting.",
+        "Suffix: <boolean> - places tag after name/chat when enabled.",
+        "Prefix: <boolean> - places tag before name/chat when enabled.",
+        "Nametag: <string> - tag text to render.",
+        "Nametag Order: <int> - lower values are applied first.",
+        "Selectors: <selector> - targets players (default @a)."
+      ]
     }
   ];
 
