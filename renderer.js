@@ -1,31 +1,113 @@
 document.addEventListener('DOMContentLoaded', () => {
   // --- UI ELEMENTS
-  const modalOverlay = document.getElementById('modalOverlay');
-  const modalWindow = document.getElementById('modalWindow');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
-  const closeModalBtn = document.getElementById('closeModal');
   const searchInput = document.getElementById('searchInput');
-  const modalHeader = document.getElementById('modalHeader');
-  const container = document.getElementById('sprite-container');
 
   // --- AUDIO & EFFECTS ELEMENTS
-  const staticOverlay = document.getElementById('staticOverlay');
   const staticSound = document.getElementById('staticSound');
   const rareSound = document.getElementById('rareSound');
   const rareScreen = document.getElementById('rare-screen');
   const flickerOverlay = document.getElementById('flicker-overlay');
+  const glitchClone = document.getElementById('glitch-clone');
 
   // --- EASTER EGG ELEMENTS
   const footerTrigger = document.getElementById('footer-trigger');
   const versionTag = document.getElementById('version-tag');
+  const bootOverlay = document.getElementById('boot-overlay');
+  const bootStatus = document.getElementById('boot-status');
 
-  // Accessibility
-  if (modalOverlay) {
-    modalOverlay.setAttribute('aria-hidden', 'true');
-    modalWindow.setAttribute('role', 'dialog');
-    modalWindow.setAttribute('aria-modal', 'true');
+  let appBootIsReady = false;
+  let splashHasFinished = false;
+  let hasBootRevealRun = false;
+
+  function setBootStatus(message) {
+    if (!bootStatus || !message) return;
+    bootStatus.textContent = message;
   }
+
+  function wait(ms) {
+    return new Promise(resolve => window.setTimeout(resolve, ms));
+  }
+
+  function waitForNextPaint() {
+    return new Promise(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  }
+
+  function tryRevealApp() {
+    if (hasBootRevealRun || !appBootIsReady || !splashHasFinished) return;
+    hasBootRevealRun = true;
+
+    waitForNextPaint().then(() => {
+      document.body.classList.add('app-ready');
+      document.body.classList.remove('app-booting');
+
+      if (bootOverlay) {
+        bootOverlay.setAttribute('aria-busy', 'false');
+      }
+    });
+  }
+
+  function markAppBootReady() {
+    appBootIsReady = true;
+    tryRevealApp();
+  }
+
+  function markSplashFinished() {
+    splashHasFinished = true;
+    tryRevealApp();
+  }
+
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileViewportQuery = window.matchMedia('(max-width: 900px)');
+  const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+
+  function getEffectProfile() {
+    const reduceMotion = reducedMotionQuery.matches;
+    const isMobileLike = mobileViewportQuery.matches || coarsePointerQuery.matches;
+
+    return {
+      reduceMotion,
+      isMobileLike,
+      spriteCount: reduceMotion ? 7 : (isMobileLike ? 10 : 20),
+      zoomFactor: isMobileLike ? 8 : 10,
+      glitchIntensity: reduceMotion ? 2 : (isMobileLike ? 4 : 6),
+      maxGlitchBars: reduceMotion ? 8 : (isMobileLike ? 12 : 18),
+      flickerDelayMin: reduceMotion ? 3600 : (isMobileLike ? 2600 : 1600),
+      flickerDelayRange: reduceMotion ? 5200 : (isMobileLike ? 5200 : 3800),
+      flickerOpacityMin: reduceMotion ? 0.04 : (isMobileLike ? 0.07 : 0.1),
+      flickerOpacityRange: reduceMotion ? 0.12 : (isMobileLike ? 0.2 : 0.32),
+      staticMin: reduceMotion ? 0.03 : (isMobileLike ? 0.04 : 0.06),
+      staticRange: reduceMotion ? 0.08 : (isMobileLike ? 0.12 : 0.16),
+      staticIntervalMs: reduceMotion ? 1400 : (isMobileLike ? 1200 : 900)
+    };
+  }
+
+  function attachMediaQueryListener(query, callback) {
+    if (!query) return;
+
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', callback);
+      return;
+    }
+
+    if (typeof query.addListener === 'function') {
+      query.addListener(callback);
+    }
+  }
+
+  let effectProfile = getEffectProfile();
+
+  function syncEffectProfile() {
+    effectProfile = getEffectProfile();
+    document.body.classList.toggle('mobile-viewport', effectProfile.isMobileLike);
+    document.body.classList.toggle('reduced-motion', effectProfile.reduceMotion);
+  }
+
+  attachMediaQueryListener(reducedMotionQuery, syncEffectProfile);
+  attachMediaQueryListener(mobileViewportQuery, syncEffectProfile);
+  attachMediaQueryListener(coarsePointerQuery, syncEffectProfile);
+  syncEffectProfile();
 
   // --- AUDIO
   function safePlay(audioElem) {
@@ -67,10 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Global Navigation Buttons
     const homeBtn = document.getElementById('home-btn');
-    if (screenId === 'main-menu') {
-      homeBtn.classList.add('hidden'); // Hide Home button on main menu
-    } else {
-      homeBtn.classList.remove('hidden'); // Show on all other screens
+    if (homeBtn) {
+      if (screenId === 'main-menu') {
+        homeBtn.classList.add('hidden'); // Hide Home button on main menu
+      } else {
+        homeBtn.classList.remove('hidden'); // Show on all other screens
+      }
     }
 
     // Update Placeholder Title if needed
@@ -79,69 +163,368 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Data store for simple example content
-  const toolData = {
-    'ui_basics': "Detailed information about System Basics. Describes how the UI interacts with the user.",
-    'func_train': "Detailed information about Func Train. Used for creating moving platforms that follow path_tracks."
+  const blockGrid = document.getElementById('blockGrid');
+  const toolsSubtitle = document.getElementById('tools-subtitle');
+  const catalogCount = document.getElementById('catalog-count');
+  const catalogEmpty = document.getElementById('catalog-empty');
+  const detailHeaderTitle = document.getElementById('detail-header-title');
+  const detailInfoContent = document.getElementById('detail-info-content');
+  const detailOutputsContent = document.getElementById('detail-outputs-content');
+  const detailExistingContent = document.getElementById('detail-existing-content');
+  const detailInputsContent = document.getElementById('detail-inputs-content');
+
+  const catalogSource = window.BSECatalog || {
+    entries: [],
+    outputTemplate: [],
+    existingOutputTemplate: [],
+    inputTemplate: [],
+    iconMap: {}
   };
 
-  window.openDetailView = function (name, imgSrc, dataKey) {
-    // Set Header
-    document.getElementById('detail-header-title').innerText = name;
+  const blockCatalog = Array.isArray(catalogSource.entries) ? catalogSource.entries : [];
+  const menuLabels = {
+    tools: 'Tools & Blocks',
+    brushes: 'Brushes & Environment',
+    logic: 'Logic Blocks',
+    game: 'Game & Mode Blocks'
+  };
 
-    // Set Info Content
-    const infoContainer = document.getElementById('detail-info-content');
-    const description = toolData[dataKey] || "No specific class info available.";
+  let currentMenuGroup = 'tools';
+  let currentSearchTerm = '';
+  let searchDebounceTimeoutId = null;
 
-    infoContainer.innerHTML = `
-        <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
-            <img src="${imgSrc}" style="image-rendering: pixelated; width: 64px; height: 64px; border: 2px solid #000; background: rgba(0,0,0,0.3);">
-            <div class="desc-box" style="flex-grow: 1;">${description}</div>
+  function normalizeText(value) {
+    return `${value ?? ''}`.toLowerCase();
+  }
+
+  function escapeHtml(value) {
+    return `${value ?? ''}`
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  const categoryFallbackIcons = {
+    Tools: 'assets/brr_trigger.png',
+    Brushes: 'assets/brr_skybox.png',
+    Logic: 'assets/logic_auto.png',
+    Game: 'assets/game_round_win.png',
+    Environment: 'assets/env_particles.png',
+    Internal: 'assets/brr_nodraw.png'
+  };
+
+  function getFallbackIcon(entry) {
+    return categoryFallbackIcons[entry?.category] || 'assets/brr_trigger.png';
+  }
+
+  function resolveIconPath(entry) {
+    const mapped = catalogSource?.iconMap?.[entry.id];
+    if (mapped) return mapped;
+    return `assets/${entry.id}.png`;
+  }
+
+  function setToolsSubtitle(menuGroup) {
+    if (!toolsSubtitle) return;
+    toolsSubtitle.textContent = menuLabels[menuGroup] || menuLabels.tools;
+  }
+
+  const searchableCatalogTextById = new Map(
+    blockCatalog.map(entry => {
+      const haystack = [
+        entry.name,
+        entry.id,
+        entry.category,
+        entry.summary,
+        entry.usage,
+        entry.example,
+        ...(Array.isArray(entry.classInfo) ? entry.classInfo : [])
+      ].map(normalizeText).join(' ');
+
+      return [entry.id, haystack];
+    })
+  );
+
+  function getFilteredCatalog() {
+    return blockCatalog
+      .filter(entry => (currentMenuGroup === 'tools' ? true : entry.menuGroup === currentMenuGroup))
+      .filter(entry => {
+        if (!currentSearchTerm) return true;
+
+        const haystack = searchableCatalogTextById.get(entry.id) || '';
+
+        return haystack.includes(currentSearchTerm);
+      });
+  }
+
+  function renderCatalog() {
+    if (!blockGrid) return;
+    blockGrid.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    const filtered = getFilteredCatalog();
+    if (catalogCount) {
+      catalogCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'Block' : 'Blocks'}`;
+    }
+
+    if (catalogEmpty) {
+      catalogEmpty.style.display = filtered.length === 0 ? 'block' : 'none';
+    }
+
+    filtered.forEach(entry => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'block-card';
+
+      const icon = resolveIconPath(entry);
+      const fallbackIcon = getFallbackIcon(entry);
+      card.innerHTML = `
+        <div class="card-top">
+          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" class="card-img" alt="${escapeHtml(entry.name)} icon" loading="lazy" decoding="async" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">
         </div>
+        <div class="card-category">${escapeHtml(entry.category || 'Tools')}</div>
+        <div class="card-title">${escapeHtml(entry.name)}</div>
+        <div class="card-summary">${escapeHtml(entry.summary || 'No summary available.')}</div>
+      `;
+
+      card.addEventListener('click', () => window.openDetailView(entry.id));
+      fragment.appendChild(card);
+    });
+
+    blockGrid.appendChild(fragment);
+  }
+
+  function buildListHtml(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      return '<p class="detail-muted">No entries available for this section.</p>';
+    }
+
+    return `<ul class="detail-list">${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+  }
+
+  function buildDetailInfo(entry) {
+    const icon = resolveIconPath(entry);
+    const fallbackIcon = getFallbackIcon(entry);
+    const notes = Array.isArray(entry.notes) ? entry.notes : [];
+
+    return `
+      <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+        <div class="card-top" style="width: 96px; min-width: 96px; min-height: 96px;">
+          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" alt="${escapeHtml(entry.name)} icon" class="card-img" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">
+        </div>
+        <div class="desc-box" style="flex-grow:1; margin-bottom:0;">${escapeHtml(entry.summary || '')}</div>
+      </div>
+
+      <div class="detail-meta-row">
+        <span class="detail-chip">Category: ${escapeHtml(entry.category || 'Tools')}</span>
+        <span class="detail-chip">ID: ${escapeHtml(entry.id)}</span>
+      </div>
+
+      <h3 class="section-title">Usage</h3>
+      <p class="detail-muted">${escapeHtml(entry.usage || 'No usage notes available.')}</p>
+
+      <h3 class="section-title">Example</h3>
+      <p class="detail-muted">${escapeHtml(entry.example || 'No example available.')}</p>
+
+      <h3 class="section-title">Class Info Fields</h3>
+      ${buildListHtml(entry.classInfo)}
+
+      ${notes.length > 0 ? `<h3 class="section-title">Notes</h3>${buildListHtml(notes)}` : ''}
     `;
+  }
 
-    // Reset Tabs
+  function buildOutputsHtml() {
+    return `
+      <p class="detail-muted">Outputs define what this block sends to other blocks after conditions/events run.</p>
+      ${buildListHtml(catalogSource.outputTemplate)}
+    `;
+  }
+
+  function buildExistingOutputsHtml() {
+    return `
+      <p class="detail-muted">This tab is for managing already-saved outputs on the selected block.</p>
+      ${buildListHtml(catalogSource.existingOutputTemplate)}
+    `;
+  }
+
+  function buildInputsHtml() {
+    return `
+      <p class="detail-muted">Inputs are incoming links from other blocks and are read-only in your docs.</p>
+      ${buildListHtml(catalogSource.inputTemplate)}
+    `;
+  }
+
+  window.openDetailView = function (blockId) {
+    const entry = blockCatalog.find(block => block.id === blockId);
+    if (!entry) return;
+
+    if (detailHeaderTitle) detailHeaderTitle.innerText = entry.name;
+    if (detailInfoContent) detailInfoContent.innerHTML = buildDetailInfo(entry);
+    if (detailOutputsContent) detailOutputsContent.innerHTML = buildOutputsHtml();
+    if (detailExistingContent) detailExistingContent.innerHTML = buildExistingOutputsHtml();
+    if (detailInputsContent) detailInputsContent.innerHTML = buildInputsHtml();
+
     switchTab('info');
-
-    // Navigate
     navigateTo('detail-screen');
   };
 
   window.switchTab = function (tabName) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    // Deactivate all tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(el => {
+      el.style.display = 'none';
+    });
 
-    // Show active
-    document.getElementById(`tab-${tabName}`).style.display = 'block';
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      if (btn.getAttribute('onclick').includes(tabName)) {
-        btn.classList.add('active');
+      btn.classList.remove('active');
+    });
+
+    const activeContent = document.getElementById(`tab-${tabName}`);
+    if (activeContent) activeContent.style.display = 'block';
+
+    const activeTab = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (activeTab) activeTab.classList.add('active');
+  };
+
+  window.openCategory = function (menuGroup = 'tools') {
+    currentMenuGroup = menuGroup;
+    currentSearchTerm = '';
+
+    if (searchInput) searchInput.value = '';
+
+    setToolsSubtitle(menuGroup);
+    renderCatalog();
+    navigateTo('tools-screen');
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const nextValue = normalizeText(e.target.value).trim();
+
+      if (searchDebounceTimeoutId) {
+        window.clearTimeout(searchDebounceTimeoutId);
+      }
+
+      searchDebounceTimeoutId = window.setTimeout(() => {
+        currentSearchTerm = nextValue;
+        renderCatalog();
+      }, 70);
+    });
+  }
+
+  function collectBootImagePaths() {
+    const imagePaths = new Set([
+      'assets/brr_trigger.png',
+      'assets/home.png',
+      'assets/power_button.png',
+      'assets/bonnie_tech_logo.png',
+      'assets/bse_icon_small.png',
+      'assets/discord.png',
+      'assets/youtube.png',
+      'assets/paypal.png'
+    ]);
+
+    for (const entry of blockCatalog) {
+      imagePaths.add(resolveIconPath(entry));
+      imagePaths.add(getFallbackIcon(entry));
+    }
+
+    return [...imagePaths].filter(Boolean);
+  }
+
+  function preloadImage(src) {
+    return new Promise(resolve => {
+      const image = new Image();
+
+      image.onload = () => resolve(true);
+      image.onerror = () => resolve(false);
+      image.src = src;
+
+      if (image.complete) {
+        resolve(true);
       }
     });
-  };
+  }
+
+  async function preloadBootAssets() {
+    const imagePaths = collectBootImagePaths();
+    const imagePreloads = imagePaths.map(preloadImage);
+    const fontsReadyPromise = document.fonts?.ready
+      ? Promise.resolve(document.fonts.ready).catch(() => undefined)
+      : Promise.resolve();
+
+    await Promise.race([
+      Promise.allSettled([...imagePreloads, fontsReadyPromise]),
+      wait(4200)
+    ]);
+  }
+
+  async function runBootSequence(backgroundReadyPromise) {
+    try {
+      setBootStatus('Building catalog...');
+      await waitForNextPaint();
+
+      setBootStatus('Preloading assets...');
+      await preloadBootAssets();
+
+      setBootStatus('Warming background...');
+      await Promise.race([backgroundReadyPromise, wait(2200)]);
+
+      setBootStatus('Finalizing interface...');
+      await waitForNextPaint();
+      await waitForNextPaint();
+    } catch (e) {
+      console.warn('Boot sequence fallback:', e);
+    } finally {
+      markAppBootReady();
+    }
+  }
+
+  setToolsSubtitle(currentMenuGroup);
+  renderCatalog();
 
   // --- BACKGROUND SYSTEM
   function initBackgroundSystem() {
     const canvas = document.getElementById('bg-canvas');
-    if (!canvas) return;
+    if (!canvas) return Promise.resolve();
     const ctx = canvas.getContext('2d');
-    const zoomFactor = 10;
+    if (!ctx) return Promise.resolve();
+
+    let resolveBackgroundReady;
+    const backgroundReadyPromise = new Promise(resolve => {
+      resolveBackgroundReady = resolve;
+    });
+
+    let hasBackgroundStarted = false;
+    let zoomFactor = effectProfile.zoomFactor;
+    let spriteCount = effectProfile.spriteCount;
+    const sprites = [];
+    const loadedImages = [];
+    let imagesLoadedCount = 0;
+
+    function notifyBackgroundReady() {
+      if (hasBackgroundStarted) return;
+      hasBackgroundStarted = true;
+      resolveBackgroundReady();
+    }
 
     function resizeCanvas() {
+      syncEffectProfile();
+      zoomFactor = effectProfile.zoomFactor;
+      spriteCount = effectProfile.spriteCount;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       ctx.imageSmoothingEnabled = false;
+      rebalanceSprites();
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
     const spriteNames = ['sprite1', 'sprite2', 'sprite3', 'sprite4', 'sprite5', 'sprite6', 'sprite7', 'sprite8', 'sprite9', 'sprite10', 'sprite11', 'sprite12', 'sprite13', 'sprite14', 'sprite15'];
-    const spriteCount = 20;
-    const sprites = [];
-    const loadedImages = [];
-    let imagesLoadedCount = 0;
+
+    if (spriteNames.length === 0) {
+      notifyBackgroundReady();
+      return backgroundReadyPromise;
+    }
 
     spriteNames.forEach(name => {
       const img = new Image();
@@ -150,11 +533,31 @@ document.addEventListener('DOMContentLoaded', () => {
       img.onerror = () => { if (++imagesLoadedCount === spriteNames.length) startSystem(); };
     });
 
+    let systemStarted = false;
     function startSystem() {
+      if (systemStarted) return;
+      systemStarted = true;
+
       for (let i = 0; i < spriteCount; i++) {
         createSafeSprite(false);
       }
       animate();
+      notifyBackgroundReady();
+    }
+
+    function rebalanceSprites() {
+      if (!loadedImages.length) return;
+
+      if (sprites.length < spriteCount) {
+        for (let i = sprites.length; i < spriteCount; i++) {
+          createSafeSprite(true);
+        }
+        return;
+      }
+
+      if (sprites.length > spriteCount) {
+        sprites.length = spriteCount;
+      }
     }
 
     function checkCollision(x, y, w, h, excludeIndex = -1) {
@@ -200,7 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!checkCollision(x, y, w, h)) {
-          sprites.push({ x, y, width: w, height: h, img, speedX: 0.5, speedY: 0.5 });
+          const moveSpeed = effectProfile.reduceMotion ? 0.24 : (effectProfile.isMobileLike ? 0.36 : 0.5);
+          sprites.push({ x, y, width: w, height: h, img, speedX: moveSpeed, speedY: moveSpeed });
           placed = true;
         }
         attempts++;
@@ -246,8 +650,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       requestAnimationFrame(animate);
     }
+
+    return backgroundReadyPromise;
   }
-  initBackgroundSystem();
+  const backgroundReadyPromise = initBackgroundSystem();
+  runBootSequence(backgroundReadyPromise);
 
   // --- BACKGROUND SCANLINE EFFECT
   // Random Scanline Opacity (32% to 72%)
@@ -255,14 +662,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanlineDiv = document.querySelector('.scanlines');
     if (!scanlineDiv) return;
 
-    // Random percentage between 0.32 and 0.72
-    const randomOpacity = (Math.random() * (0.72 - 0.32)) + 0.32;
+    const minOpacity = effectProfile.reduceMotion ? 0.18 : 0.32;
+    const maxOpacity = effectProfile.reduceMotion ? 0.42 : 0.72;
+    const randomOpacity = (Math.random() * (maxOpacity - minOpacity)) + minOpacity;
     scanlineDiv.style.opacity = randomOpacity;
 
-    setTimeout(cycleScanlines, 5000);
+    setTimeout(cycleScanlines, effectProfile.reduceMotion ? 7000 : 5000);
   }
   // Start the cycle
   cycleScanlines();
+
+  function pickNonRepeatingMessage(poolKey, messages) {
+    if (!Array.isArray(messages) || messages.length === 0) return '';
+
+    const storageKey = `bse_last_message_${poolKey}`;
+    let lastIndex = Number.NaN;
+
+    try {
+      lastIndex = Number.parseInt(window.localStorage.getItem(storageKey), 10);
+    } catch (e) {
+      lastIndex = Number.NaN;
+    }
+
+    let nextIndex = Math.floor(Math.random() * messages.length);
+
+    if (messages.length > 1 && Number.isInteger(lastIndex) && nextIndex === lastIndex) {
+      nextIndex = (nextIndex + 1 + Math.floor(Math.random() * (messages.length - 1))) % messages.length;
+    }
+
+    try {
+      window.localStorage.setItem(storageKey, `${nextIndex}`);
+    } catch (e) {
+      // Ignore storage restrictions in private/incognito contexts.
+    }
+
+    return messages[nextIndex];
+  }
 
   function updateWelcomeMessage() {
     const welcomeHeader = document.querySelector('.welcome-header');
@@ -271,47 +706,93 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!welcomeHeader || !welcomeText) return;
 
     const hour = new Date().getHours();
-    let greeting = "WELCOME";
-    let subMessages = ["Access the database for Bonnie's Source Engine."];
+    let greeting = 'WELCOME';
+    let timeBucket = 'default';
 
-    // 1. Determine Time of Day
-    if (hour >= 5 && hour < 12) {
-      greeting = "GOOD MORNING";
-      subMessages = [
-        "Early bird gets the worm.",
-        "Coffee first, logic gates later.",
-        "The sun is up, why are you inside?"
-      ];
-    } else if (hour >= 12 && hour < 17) {
-      greeting = "GOOD AFTERNOON";
-      subMessages = [
-        "Mid-day productivity spike?",
-        "Don't forget to hydrate.",
-        "Lunch break is over."
-      ];
-    } else if (hour >= 17 && hour < 21) {
-      greeting = "GOOD EVENING?";
-      subMessages = [
-        "Winding down or gearing up?",
-        "The night is young.",
-        "Perfect time for coding."
-      ];
-    } else {
-      // Night / Late Night (9PM - 5AM)
-      greeting = "GOOD NIGHT";
-      subMessages = [
-        "nap time evades you",
-        "is sleep afraid?",
-        "how much longer?",
+    const messagePools = {
+      morning: [
+        'Early bird gets the logic block.',
+        'Coffee first, outputs second.',
+        'Fresh session, clean wiring.',
+        'Morning build pass initiated.',
+        'Sunlight outside, scripts inside.',
+        'Perfect time to organize your block names.',
+        'Rise and map, creator.',
+        'Morning mode: stable and productive.',
+        'Good morning, engineer of chaos.',
+        'The map is loading before breakfast.',
+        'Quick sanity test, then full creative mode.',
+        'Start small, ship big by nightfall.'
+      ],
+      afternoon: [
+        'Midday momentum is online.',
+        'Hydrate before debugging conditions.',
+        'Time for one more map system pass.',
+        'Afternoon check: outputs still linked?',
+        'Keep stacking clean block chains.',
+        'A good hour for polishing details.',
+        'Lunch is over, logic is forever.',
+        'Afternoon build session engaged.',
+        'Great hour to test edge cases.',
+        'Map flow audit in progress.',
+        'Every saved output counts right now.',
+        'Perfect time to tune gameplay pacing.'
+      ],
+      evening: [
+        'Evening shift: cinematic mode.',
+        'Prime time for map polish.',
+        'Keep the ambience, keep the vibe.',
+        'Good hour for gameplay balancing.',
+        'Evening calm, stable systems.',
+        'One more test run before late night.',
+        'Great time to wire final outputs.',
+        'Winding down or gearing up?',
+        'The night is young and your logic is cleaner.',
+        'Visual pass plus bug pass sounds about right.',
+        'Tonight is for clean design and cleaner code.',
+        'Edge-case hunting begins at sunset.'
+      ],
+      night: [
+        'Still awake, still building.',
+        'Night mode: static, scanlines, and focus.',
+        'Late-night creators are built different.',
+        'The map is quiet but your scripts are not.',
+        'One more tweak before bed... probably.',
+        'You and the debug log, again.',
+        'Night shift in progress.',
+        'Bed is calling, but so is iteration 37.',
+        'Insomniac engineering online.',
+        'The blocks are sleeping, but your ideas are not.',
+        'Another reload, another breakthrough.',
+        'Sleep timer: delayed by creative mode.',
+        'nap time evades you',
+        'is sleep afraid?',
+        'how much longer?',
         "it's bed time my dudes",
-        "i am seriously thinking you like this place",
-        "we enjoy your time here but the bed needs you"
-      ];
+        'i am seriously thinking you like this place',
+        'we enjoy your time here but the bed needs you'
+      ],
+      default: [
+        "Access the database for Bonnie's Source Engine."
+      ]
+    };
+
+    if (hour >= 5 && hour < 12) {
+      greeting = 'GOOD MORNING';
+      timeBucket = 'morning';
+    } else if (hour >= 12 && hour < 17) {
+      greeting = 'GOOD AFTERNOON';
+      timeBucket = 'afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      greeting = 'GOOD EVENING';
+      timeBucket = 'evening';
+    } else {
+      greeting = 'GOOD NIGHT';
+      timeBucket = 'night';
     }
 
-    // 2. Set Text
     welcomeHeader.textContent = greeting;
-    const randomMsg = subMessages[Math.floor(Math.random() * subMessages.length)];
+    const randomMsg = pickNonRepeatingMessage(timeBucket, messagePools[timeBucket] || messagePools.default);
     welcomeText.innerHTML = `${randomMsg}<br><br>Select a category on the left to begin browsing block definitions, logic gates, and entity properties.`;
   }
 
@@ -370,105 +851,165 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // --- GLITCHES & EFFECTS
-  let glitchIntensity = 10; // 1 = mild, 10 = severe (USER CAN EDIT THIS)
+  let glitchIntensity = effectProfile.glitchIntensity;
+  const glitchBars = [];
+  let maxGlitchBars = effectProfile.maxGlitchBars;
+  let flickerTimeoutId = null;
+  let staticNoiseTimeoutId = null;
+  let rareScreenIntervalId = null;
 
-  // Helper to grab a snapshot of the screen (simulated by cloning innerHTML)
-  // Note: True screen capture in DOM is hard, we simulate by cloning the active screen text
-  // For the "shred" effect, we will create strips that offset the content.
+  function createGlitchBarsPool() {
+    if (!glitchClone) return;
+
+    syncEffectProfile();
+    glitchIntensity = effectProfile.glitchIntensity;
+    maxGlitchBars = effectProfile.maxGlitchBars;
+
+    glitchClone.innerHTML = '';
+    glitchBars.length = 0;
+    for (let i = 0; i < maxGlitchBars; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'glitch-bar';
+      glitchClone.appendChild(bar);
+      glitchBars.push(bar);
+    }
+  }
+
+  function flashGlitchBar(bar) {
+    if (!bar) return;
+
+    const top = Math.random() * 100;
+    const height = 2 + Math.random() * (8 + glitchIntensity * 2);
+    const width = 65 + Math.random() * 35;
+    const left = Math.random() * 10 - 5;
+    const shift = (Math.random() - 0.5) * (10 + glitchIntensity * 6);
+    const opacity = 0.2 + Math.random() * 0.45;
+    const tintA = Math.random() > 0.5 ? 'rgba(255, 92, 92, 0.55)' : 'rgba(98, 174, 255, 0.55)';
+
+    bar.style.top = `${top}%`;
+    bar.style.left = `${left}%`;
+    bar.style.height = `${height}px`;
+    bar.style.width = `${width}%`;
+    bar.style.opacity = `${opacity}`;
+    bar.style.transform = `translate3d(${shift}px, 0, 0)`;
+    bar.style.background = `linear-gradient(90deg, ${tintA}, rgba(255, 255, 255, 0.1), transparent)`;
+
+    window.setTimeout(() => {
+      bar.style.opacity = '0';
+      bar.style.transform = 'translate3d(0, 0, 0)';
+    }, 45 + Math.random() * 110);
+  }
 
   function triggerShredderGlitch() {
-    const activeScreen = document.querySelector('.screen.active') || document.body;
+    if (!glitchBars.length) return;
 
-    // Number of slices based on intensity (e.g., intensity 5 = ~15 slices)
-    const sliceCount = Math.floor(Math.random() * glitchIntensity * 3) + 2;
+    const burstCount = 2 + Math.floor(Math.random() * (3 + glitchIntensity));
+    for (let i = 0; i < burstCount; i++) {
+      const bar = glitchBars[Math.floor(Math.random() * glitchBars.length)];
+      flashGlitchBar(bar);
+    }
 
-    for (let i = 0; i < sliceCount; i++) {
-      createGlitchSlice(activeScreen);
+    document.body.classList.add('glitch-hit');
+    window.setTimeout(() => {
+      document.body.classList.remove('glitch-hit');
+    }, 90);
+  }
+
+  createGlitchBarsPool();
+
+  function refreshRuntimeProfile() {
+    const previousBars = maxGlitchBars;
+    const previousMobileState = effectProfile.isMobileLike;
+
+    syncEffectProfile();
+
+    if (effectProfile.maxGlitchBars !== previousBars) {
+      createGlitchBarsPool();
+    }
+
+    if (effectProfile.isMobileLike !== previousMobileState) {
+      scheduleRareScreen();
     }
   }
 
-  function createGlitchSlice(sourceElement) {
-    // 1. Create the container "slice" (the viewport)
-    const slice = document.createElement('div');
-    slice.classList.add('glitch-slice');
+  window.addEventListener('resize', refreshRuntimeProfile);
+  attachMediaQueryListener(reducedMotionQuery, refreshRuntimeProfile);
+  attachMediaQueryListener(mobileViewportQuery, refreshRuntimeProfile);
+  attachMediaQueryListener(coarsePointerQuery, refreshRuntimeProfile);
 
-    // Random Position & Size
-    // Height is usually small (lines) but occasionally large (chunks)
-    const isBigChunk = Math.random() < (glitchIntensity * 0.05); // Higher intensity = more big chunks
-    const height = isBigChunk ? (Math.random() * 100 + 20) : (Math.random() * 10 + 2); // 2px-10px or 20px-120px
-    const width = Math.random() * 40 + 60; // 60% - 100% width
-    const top = Math.random() * 100;
-    const left = (Math.random() * 20) - 10; // Slight Horizontal shift (-10% to 10%)
+  function scheduleFlicker() {
+    const randomDelay = Math.random() * effectProfile.flickerDelayRange + effectProfile.flickerDelayMin;
 
-    slice.style.height = height + 'px';
-    slice.style.width = width + '%';
-    slice.style.top = top + '%';
-    slice.style.left = left + '%';
-
-    // Create a clone of the source and offset it negatively
-    const contentClone = sourceElement.cloneNode(true);
-    contentClone.classList.add('glitch-slice-content');
-
-    // Remove IDs to avoid duplicates
-    contentClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-
-    // If the slice is at Top: 100px, we move content Up: -100px + (random offset)
-    const offsetX = (Math.random() - 0.5) * 50 * glitchIntensity; // Horizontal shake
-    const offsetY = -top * (window.innerHeight / 100) + ((Math.random() - 0.5) * 10); // Match vertical position + slight jitter
-
-    contentClone.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-    contentClone.style.width = document.body.clientWidth + 'px'; // Force full width match
-
-    // Append
-    slice.appendChild(contentClone);
-    document.body.appendChild(slice);
-
-    if (Math.random() > 0.5) {
-      slice.style.backgroundColor = 'black';
-      contentClone.style.opacity = '0'; // Hide content, just show black bar
-    } else {
-      slice.style.backgroundColor = 'transparent'; // Show displaced content
-    }
-
-    // 4. Cleanup
-    setTimeout(() => {
-      slice.remove();
-    }, Math.random() * 100 + 50); // Lasts 50-150ms
-  }
-
-  // --- FLICKER & AMBIANCE
-  function triggerFlicker() {
-    const randomDelay = Math.random() * 4000 + 2000;
-
-    setTimeout(() => {
-      const opacity = Math.random() * 0.4 + 0.1;
-      if (flickerOverlay) {
-        flickerOverlay.style.opacity = opacity;
-        setTimeout(() => { flickerOverlay.style.opacity = 0; }, 50);
+    flickerTimeoutId = window.setTimeout(() => {
+      if (!document.hidden && flickerOverlay && !effectProfile.reduceMotion) {
+        const opacity = Math.random() * effectProfile.flickerOpacityRange + effectProfile.flickerOpacityMin;
+        flickerOverlay.style.opacity = `${opacity}`;
+        window.setTimeout(() => {
+          flickerOverlay.style.opacity = '0';
+        }, 55);
       }
 
-      // Increased chance to glitch (80% chance when flickering)
-      if (Math.random() > 0.2) {
+      const glitchChance = effectProfile.reduceMotion ? 0.28 : (effectProfile.isMobileLike ? 0.55 : 0.75);
+      if (!document.hidden && Math.random() < glitchChance) {
         triggerShredderGlitch();
       }
 
-      triggerFlicker();
+      scheduleFlicker();
     }, randomDelay);
   }
-  triggerFlicker();
+  scheduleFlicker();
 
-  setInterval(() => {
-    const noiseLevel = 0.08 + (Math.random() * 0.12);
-    if (staticOverlay) staticOverlay.style.opacity = noiseLevel;
-    if (staticSound) staticSound.volume = Math.max(0, Math.min(1, noiseLevel));
-  }, 500);
+  function updateStaticNoise() {
+    if (document.hidden) {
+      if (staticSound) staticSound.volume = 0;
+      return;
+    }
+
+    const noiseLevel = effectProfile.staticMin + (Math.random() * effectProfile.staticRange);
+
+    if (staticSound) {
+      staticSound.volume = Math.max(0, Math.min(0.2, noiseLevel * 0.55));
+    }
+  }
+
+  function scheduleStaticNoise() {
+    updateStaticNoise();
+    staticNoiseTimeoutId = window.setTimeout(scheduleStaticNoise, effectProfile.staticIntervalMs);
+  }
+
+  scheduleStaticNoise();
+
+  function scheduleRareScreen() {
+    if (rareScreenIntervalId) {
+      window.clearInterval(rareScreenIntervalId);
+    }
+
+    const intervalMs = effectProfile.isMobileLike ? 130000 : 100000;
+    rareScreenIntervalId = window.setInterval(() => {
+      if (!document.hidden) {
+        triggerRareScreen();
+      }
+    }, intervalMs);
+  }
+
+  scheduleRareScreen();
+
+  window.addEventListener('beforeunload', () => {
+    if (flickerTimeoutId) {
+      window.clearTimeout(flickerTimeoutId);
+    }
+
+    if (staticNoiseTimeoutId) {
+      window.clearTimeout(staticNoiseTimeoutId);
+    }
+
+    if (rareScreenIntervalId) {
+      window.clearInterval(rareScreenIntervalId);
+    }
+  });
 
 
   // --- RARE SCREEN
-  setInterval(() => {
-    triggerRareScreen();
-  }, 100000);
-
   function triggerRareScreen() {
     if (!rareScreen) return;
 
@@ -533,98 +1074,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- STANDARD UI LOGIC
-
-  // Card Click
-  document.querySelectorAll('.block-card').forEach(card => {
-    const img = card.querySelector('.card-img');
-    const title = card.querySelector('.card-title')?.innerText?.trim();
-    if (img && (!img.alt || img.alt === '')) img.alt = title ? `${title} icon` : 'Block icon';
-    card.addEventListener('click', () => openModal(card));
-  });
-
-  // Search
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.block-card').forEach(card => {
-        const title = card.querySelector('.card-title')?.innerText?.toLowerCase() || '';
-        card.style.display = title.includes(term) ? 'block' : 'none';
-      });
-    });
-  }
-
-  // Modal Open
-  window.openModal = function (cardElement) {
-    const title = cardElement.querySelector('.card-title')?.innerText || 'Details';
-    const imgElem = cardElement.querySelector('.card-img');
-    const imgSrc = imgElem ? imgElem.src : '';
-    const detailsHTML = cardElement.querySelector('.details-content')?.innerHTML || '';
-
-    modalTitle.innerText = title;
-    modalBody.innerHTML = `<img src="${imgSrc}" alt="${title} icon" class="modal-big-img">${detailsHTML}`;
-
-    modalOverlay.classList.add('active');
-    modalOverlay.setAttribute('aria-hidden', 'false');
-    if (closeModalBtn) closeModalBtn.focus();
-    document.addEventListener('keydown', handleKeyDown);
-  };
-
-  // Modal Close
-  function closeModal() {
-    modalOverlay.classList.remove('active');
-    modalOverlay.setAttribute('aria-hidden', 'true');
-    document.removeEventListener('keydown', handleKeyDown);
-  }
-
-  if (closeModalBtn) closeModalBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeModal();
-  });
-
-  if (modalOverlay) modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
-
-  function handleKeyDown(e) {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
-  }
-
-  // Modal Drag Logic
-  let isDragging = false;
-  let startX, startY, offsetX = 0, offsetY = 0;
-
-  if (modalHeader) {
-    modalHeader.addEventListener('pointerdown', (e) => {
-      if (e.target === closeModalBtn || closeModalBtn.contains(e.target)) return;
-      isDragging = true;
-      startX = e.clientX - offsetX;
-      startY = e.clientY - offsetY;
-      modalHeader.setPointerCapture(e.pointerId);
-    });
-
-    document.addEventListener('pointerup', () => {
-      if (isDragging) {
-        isDragging = false;
-        const style = window.getComputedStyle(modalWindow);
-        const matrix = new WebKitCSSMatrix(style.transform);
-        offsetX = matrix.m41;
-        offsetY = matrix.m42;
-      }
-    });
-
-    document.addEventListener('pointermove', (e) => {
-      if (!isDragging) return;
-      e.preventDefault();
-      const x = e.clientX - startX;
-      const y = e.clientY - startY;
-      modalWindow.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    });
-  }
-
   // --- STARTUP VIDEO LOGIC ---
   const video = document.getElementById('startup-video');
   const startupScreen = document.getElementById('startup-screen'); // Old white line screen
+
+  function finalizeStartupSplash() {
+    if (video) {
+      video.style.display = 'none';
+    }
+    markSplashFinished();
+  }
 
   if (video) {
     // Hide old screen immediately
@@ -635,16 +1094,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Play video
     video.play().catch(e => {
       console.warn("Video autoplay blocked:", e);
-      video.style.display = 'none'; // Fallback
+      finalizeStartupSplash();
     });
 
     video.onended = () => {
-      video.style.display = 'none'; // Hide when done
+      finalizeStartupSplash();
     };
 
     // Safety timeout (5.5s) in case video stalls
     setTimeout(() => {
-      if (video.style.display !== 'none') video.style.display = 'none';
+      if (video.style.display !== 'none') finalizeStartupSplash();
     }, 5500);
+  } else {
+    markSplashFinished();
   }
 });
