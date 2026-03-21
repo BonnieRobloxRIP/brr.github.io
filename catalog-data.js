@@ -31,6 +31,7 @@ window.BSECatalog = (() => {
     info_playerspawn: "assets/info_playerspawn.png",
     info_target_areaportal: "assets/info_target_areaportal.png",
     tool_playerclip: "assets/brr_playerClip.png",
+    tool_npcclip: "assets/brr_npcClip.png",
     tool_invisible: "assets/brr_invisible.png",
     tool_blocklight: "assets/brr_blockLight.png",
     game_nametag: "assets/game_nametag.png"
@@ -39,7 +40,7 @@ window.BSECatalog = (() => {
   const entries = [
     {
       id: "tool_trigger",
-      name: "Trigger Tool",
+      name: "Trigger",
       category: "Tools",
       menuGroup: "tools",
       summary: "Detects entities or players and conditionally executes commands.",
@@ -49,7 +50,7 @@ window.BSECatalog = (() => {
     },
     {
       id: "tool_areaportal",
-      name: "Area Portal Tool",
+      name: "Area Portal",
       category: "Tools",
       menuGroup: "tools",
       summary: "Teleports selected entities to coordinates or a named target.",
@@ -87,7 +88,7 @@ window.BSECatalog = (() => {
     },
     {
       id: "tool_playerclip",
-      name: "Player Clip Tool",
+      name: "Player Clip",
       category: "Tools",
       menuGroup: "tools",
       summary: "Blocks players while allowing configured exceptions.",
@@ -102,6 +103,17 @@ window.BSECatalog = (() => {
       ]
     },
     {
+      id: "tool_npcclip",
+      name: "NPC Clip",
+      category: "Tools",
+      menuGroup: "tools",
+      summary: "Blocks NPCs while leaving players and other map logic unaffected.",
+      usage: "Use this to create NPC-only boundaries with the same simple toggle behavior as the other tool blocks.",
+      example: "Keep wandering NPCs inside a patrol zone without blocking player movement.",
+      supportsOutputs: false,
+      classInfo: [...defaultClassInfo]
+    },
+    {
       id: "tool_invisible",
       name: "Tool Invisible",
       category: "Tools",
@@ -114,7 +126,7 @@ window.BSECatalog = (() => {
     },
     {
       id: "tool_blocklight",
-      name: "Tool Blocklight",
+      name: "Blocklight",
       category: "Tools",
       menuGroup: "tools",
       summary: "Utility block that only blocks light when enabled.",
