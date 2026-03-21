@@ -1216,6 +1216,9 @@
             overflow: hidden;
             filter: hue-rotate(var(--rare-hue-shift));
             pointer-events: auto;
+            opacity: 0;
+            transform: scale(1.02);
+            transition: opacity 0.2s ease-out, transform 0.22s ease-out;
         }
 
         #rare-screen::before,
@@ -1240,9 +1243,131 @@
             filter: hue-rotate(42deg);
         }
 
+        #pre-rare-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10006;
+            pointer-events: none;
+            overflow: hidden;
+            background: transparent;
+            transition: background 0.12s steps(2);
+        }
+
+        #pre-rare-overlay::before,
+        #pre-rare-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s linear;
+        }
+
+        #pre-rare-overlay::before {
+            background:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, rgba(0, 0, 0, 0.06) 2px 4px),
+                repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 3px, rgba(255, 255, 255, 0.04) 3px 7px);
+            mix-blend-mode: screen;
+        }
+
+        #pre-rare-overlay::after {
+            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+        }
+
+        #pre-rare-overlay.active {
+            display: block;
+        }
+
+        body.pre-rare-distort #pre-rare-overlay::before {
+            opacity: calc(0.08 + var(--pre-rare-progress, 0) * 0.52);
+        }
+
+        body.pre-rare-distort #pre-rare-overlay::after {
+            opacity: calc(0.12 + var(--pre-rare-progress, 0) * 0.5);
+        }
+
+        #pre-rare-overlay.full-cover {
+            background: rgba(0, 0, 0, 1);
+        }
+
+        .pre-rare-box {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            image-rendering: pixelated;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+        }
+
+        .pre-rare-box.active {
+            opacity: calc(0.35 + var(--pre-rare-progress, 0) * 0.65);
+            transform: scale(1);
+        }
+
+        .pre-rare-fragment {
+            position: absolute;
+            overflow: hidden;
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.94);
+            mix-blend-mode: screen;
+            filter: contrast(1.1) saturate(0.88);
+            transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+        }
+
+        .pre-rare-fragment.active {
+            opacity: calc(0.16 + var(--pre-rare-progress, 0) * 0.54);
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .pre-rare-fragment-content {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .pre-rare-fragment-content .screen {
+            margin: 0;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        body.pre-rare-distort .screen.active,
+        body.pre-rare-distort .footer,
+        body.pre-rare-distort #global-nav,
+        body.pre-rare-distort #version-tag {
+            animation: none;
+            transform: translate3d(var(--pre-rare-shift-x, 0px), var(--pre-rare-shift-y, 0px), 0) scale(calc(1 + var(--pre-rare-progress, 0) * 0.012));
+            filter: blur(calc(var(--pre-rare-progress, 0) * 1.1px)) contrast(calc(1 + var(--pre-rare-progress, 0) * 0.45));
+            transition: transform 0.06s steps(2), filter 0.08s linear;
+        }
+
+        @keyframes preRareJitter {
+            0% {
+                transform: translate(0, 0);
+                filter: none;
+            }
+            50% {
+                transform: translate(2px, -1px);
+                filter: contrast(1.05);
+            }
+            100% {
+                transform: translate(-2px, 1px);
+                filter: contrast(0.95);
+            }
+        }
+
         #rare-screen.active {
             display: flex;
             animation: none;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #rare-screen.pre-glitch {
+            display: flex;
+            opacity: 0;
+            transform: scale(1.05);
         }
 
         #rare-screen[data-rarity='common'] .rare-logo {
@@ -1789,6 +1914,7 @@
     <div class="scanlines"></div>
     <div id="flicker-overlay"></div>
     <div id="glitch-clone"></div>
+    <div id="pre-rare-overlay" aria-hidden="true"></div>
 
     <div id="rare-screen">
         <div class="rare-side-glitch left" aria-hidden="true"></div>
