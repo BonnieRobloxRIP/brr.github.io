@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rareTitle = document.getElementById('rare-title');
   const rareText = document.getElementById('rare-text');
   const rareSubtext = document.getElementById('rare-subtext');
+  const preRareOverlay = document.getElementById('pre-rare-overlay');
   const flickerOverlay = document.getElementById('flicker-overlay');
   const glitchClone = document.getElementById('glitch-clone');
 
@@ -284,6 +285,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailOutputsContent = document.getElementById('detail-outputs-content');
   const detailExistingContent = document.getElementById('detail-existing-content');
   const detailInputsContent = document.getElementById('detail-inputs-content');
+  const detailTabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+  const detailTabContents = {
+    info: document.getElementById('tab-info'),
+    outputs: document.getElementById('tab-outputs'),
+    existing: document.getElementById('tab-existing'),
+    inputs: document.getElementById('tab-inputs')
+  };
 
   const catalogSource = window.BSECatalog || {
     entries: [],
@@ -468,11 +476,45 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function buildOutputsHtmlForEntry(entry) {
+    if (entry?.supportsOutputs === false) {
+      return `
+        <p class="detail-muted">This block does not emit outputs by design.</p>
+      `;
+    }
+
+    if (Array.isArray(entry?.outputTemplate) && entry.outputTemplate.length > 0) {
+      return `
+        <p class="detail-muted">Outputs define what this block sends to other blocks after conditions/events run.</p>
+        ${buildListHtml(entry.outputTemplate)}
+      `;
+    }
+
+    return buildOutputsHtml();
+  }
+
   function buildExistingOutputsHtml() {
     return `
       <p class="detail-muted">This tab is for managing already-saved outputs on the selected block.</p>
       ${buildListHtml(catalogSource.existingOutputTemplate)}
     `;
+  }
+
+  function buildExistingOutputsHtmlForEntry(entry) {
+    if (entry?.supportsOutputs === false) {
+      return `
+        <p class="detail-muted">There are no existing outputs for this block because it does not support outputs.</p>
+      `;
+    }
+
+    if (Array.isArray(entry?.existingOutputTemplate) && entry.existingOutputTemplate.length > 0) {
+      return `
+        <p class="detail-muted">This tab is for managing already-saved outputs on the selected block.</p>
+        ${buildListHtml(entry.existingOutputTemplate)}
+      `;
+    }
+
+    return buildExistingOutputsHtml();
   }
 
   function buildInputsHtml() {
@@ -482,21 +524,59 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function buildInputsHtmlForEntry(entry) {
+    if (Array.isArray(entry?.inputTemplate) && entry.inputTemplate.length > 0) {
+      return `
+        <p class="detail-muted">Inputs are incoming links from other blocks and are read-only in your docs.</p>
+        ${buildListHtml(entry.inputTemplate)}
+      `;
+    }
+
+    return buildInputsHtml();
+  }
+
+  function isDetailTabVisible(tabName) {
+    const button = detailTabButtons.find(btn => btn.dataset.tab === tabName);
+    return Boolean(button) && button.style.display !== 'none';
+  }
+
+  function setDetailTabVisibility(tabName, visible) {
+    const button = detailTabButtons.find(btn => btn.dataset.tab === tabName);
+    const content = detailTabContents[tabName];
+
+    if (button) button.style.display = visible ? '' : 'none';
+    if (content) content.style.display = visible ? content.style.display : 'none';
+  }
+
+  function updateDetailTabs(entry) {
+    const supportsOutputs = entry?.supportsOutputs !== false;
+    setDetailTabVisibility('outputs', supportsOutputs);
+    setDetailTabVisibility('existing', supportsOutputs);
+    setDetailTabVisibility('info', true);
+    setDetailTabVisibility('inputs', true);
+  }
+
   window.openDetailView = function (blockId) {
     const entry = blockCatalog.find(block => block.id === blockId);
     if (!entry) return;
 
+    updateDetailTabs(entry);
+
     if (detailHeaderTitle) detailHeaderTitle.innerText = entry.name;
     if (detailInfoContent) detailInfoContent.innerHTML = buildDetailInfo(entry);
-    if (detailOutputsContent) detailOutputsContent.innerHTML = buildOutputsHtml();
-    if (detailExistingContent) detailExistingContent.innerHTML = buildExistingOutputsHtml();
-    if (detailInputsContent) detailInputsContent.innerHTML = buildInputsHtml();
+    if (detailOutputsContent) detailOutputsContent.innerHTML = buildOutputsHtmlForEntry(entry);
+    if (detailExistingContent) detailExistingContent.innerHTML = buildExistingOutputsHtmlForEntry(entry);
+    if (detailInputsContent) detailInputsContent.innerHTML = buildInputsHtmlForEntry(entry);
 
     switchTab('info');
     navigateTo('detail-screen');
   };
 
   window.switchTab = function (tabName) {
+    if (!isDetailTabVisible(tabName)) {
+      tabName = 'info';
+    }
+
     document.querySelectorAll('.tab-content').forEach(el => {
       el.style.display = 'none';
     });
@@ -1255,13 +1335,107 @@ document.addEventListener('DOMContentLoaded', () => {
     return steps;
   }
 
+  function buildPreRareBoxes() {
+    if (!preRareOverlay) return [];
+
+    preRareOverlay.innerHTML = '';
+    const boxes = [];
+    const targetCount = effectProfile.isMobileLike ? 90 : 130;
+
+    for (let i = 0; i < targetCount; i++) {
+      const box = document.createElement('div');
+      box.className = 'pre-rare-box';
+
+      const widthPx = 28 + Math.floor(Math.random() * (effectProfile.isMobileLike ? 180 : 240));
+      const heightPx = 14 + Math.floor(Math.random() * (effectProfile.isMobileLike ? 120 : 170));
+      const maxLeft = Math.max(0, window.innerWidth - widthPx);
+      const maxTop = Math.max(0, window.innerHeight - heightPx);
+      const leftPx = Math.floor(Math.random() * (maxLeft + 1));
+      const topPx = Math.floor(Math.random() * (maxTop + 1));
+
+      box.style.width = `${widthPx}px`;
+      box.style.height = `${heightPx}px`;
+      box.style.left = `${leftPx}px`;
+      box.style.top = `${topPx}px`;
+
+      preRareOverlay.appendChild(box);
+      boxes.push(box);
+    }
+
+    return boxes;
+  }
+
+  function shuffleArray(items) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function buildPreRareFragments(screenElement) {
+    if (!preRareOverlay || !screenElement) return [];
+
+    const fragments = [];
+    const fragmentCount = effectProfile.isMobileLike ? 3 : 5;
+
+    for (let i = 0; i < fragmentCount; i++) {
+      const widthPx = Math.floor(window.innerWidth * (0.2 + Math.random() * 0.24));
+      const heightPx = Math.floor(window.innerHeight * (0.12 + Math.random() * 0.2));
+      const maxLeft = Math.max(0, window.innerWidth - widthPx);
+      const maxTop = Math.max(0, window.innerHeight - heightPx);
+      const leftPx = Math.floor(Math.random() * (maxLeft + 1));
+      const topPx = Math.floor(Math.random() * (maxTop + 1));
+
+      const fragment = document.createElement('div');
+      fragment.className = 'pre-rare-fragment';
+      fragment.style.width = `${widthPx}px`;
+      fragment.style.height = `${heightPx}px`;
+      fragment.style.left = `${leftPx}px`;
+      fragment.style.top = `${topPx}px`;
+
+      const content = document.createElement('div');
+      content.className = 'pre-rare-fragment-content';
+      const clone = screenElement.cloneNode(true);
+      clone.classList.add('active');
+      clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+      clone.querySelectorAll('[onclick],[onerror],[onload]').forEach(node => {
+        node.removeAttribute('onclick');
+        node.removeAttribute('onerror');
+        node.removeAttribute('onload');
+      });
+      clone.style.pointerEvents = 'none';
+      clone.style.position = 'absolute';
+      clone.style.left = `${-leftPx + (Math.random() > 0.5 ? 14 : -14)}px`;
+      clone.style.top = `${-topPx + (Math.random() > 0.5 ? 10 : -10)}px`;
+      clone.style.width = `${window.innerWidth}px`;
+      clone.style.height = `${window.innerHeight}px`;
+      content.appendChild(clone);
+      fragment.appendChild(content);
+      preRareOverlay.appendChild(fragment);
+      fragments.push(fragment);
+    }
+
+    return fragments;
+  }
+
 
   function triggerRareScreen() {
     if (!rareScreen) return;
     if (document.body.classList.contains('rare-distorting')) return;
 
     document.body.classList.add('rare-distorting');
-    rareScreen.classList.add('active');
+    document.body.classList.add('pre-rare-distort');
+    document.documentElement.style.setProperty('--pre-rare-progress', '0');
+    document.documentElement.style.setProperty('--pre-rare-shift-x', '0px');
+    document.documentElement.style.setProperty('--pre-rare-shift-y', '0px');
+    rareScreen.classList.remove('active');
+    rareScreen.classList.remove('pre-glitch');
+    if (preRareOverlay) {
+      preRareOverlay.classList.remove('full-cover');
+      preRareOverlay.classList.add('active');
+    }
 
     const screenElement = document.querySelector('.screen.active');
     const globalNav = document.getElementById('global-nav');
@@ -1274,6 +1448,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (versionTag) versionTag.style.pointerEvents = 'none';
 
     const rareSteps = buildRareSteps();
+    const preBuildDurationMs = 2100 + Math.floor(Math.random() * 900);
+    const preBuildStartedAt = Date.now();
 
     let rareStepIndex = 0;
     function renderRareStep(step) {
@@ -1283,16 +1459,81 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rareSubtext) rareSubtext.textContent = step.detail;
     }
 
-    renderRareStep(rareSteps[0]);
+    const preBoxes = buildPreRareBoxes();
+    const preFragments = buildPreRareFragments(screenElement);
+    const revealables = shuffleArray([...preBoxes, ...preFragments]);
+    let revealCursor = 0;
 
-    const messageTimer = window.setInterval(() => {
-      rareStepIndex += 1;
-      if (rareStepIndex >= rareSteps.length) {
-        window.clearInterval(messageTimer);
-        return;
+    const preGlitchBursts = 3 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < preGlitchBursts; i++) {
+      window.setTimeout(() => {
+        triggerShredderGlitch();
+      }, 36 * i);
+    }
+
+    const preBuildTimer = window.setInterval(() => {
+      const elapsed = Date.now() - preBuildStartedAt;
+      const progress = Math.min(1, elapsed / preBuildDurationMs);
+      document.documentElement.style.setProperty('--pre-rare-progress', `${progress.toFixed(3)}`);
+
+      const shiftAmplitude = 1 + progress * (effectProfile.isMobileLike ? 10 : 16);
+      const shiftX = ((Math.random() - 0.5) * shiftAmplitude).toFixed(2);
+      const shiftY = ((Math.random() - 0.5) * shiftAmplitude).toFixed(2);
+      document.documentElement.style.setProperty('--pre-rare-shift-x', `${shiftX}px`);
+      document.documentElement.style.setProperty('--pre-rare-shift-y', `${shiftY}px`);
+
+      const remaining = revealables.length - revealCursor;
+      if (remaining <= 0) return;
+
+      const burstCeiling = (effectProfile.isMobileLike ? 4 : 6) + Math.floor(progress * (effectProfile.isMobileLike ? 8 : 16));
+      const burst = 1 + Math.floor(Math.random() * Math.max(2, burstCeiling));
+      const revealNow = Math.min(remaining, burst);
+      for (let i = 0; i < revealNow; i++) {
+        revealables[revealCursor + i]?.classList.add('active');
       }
-      renderRareStep(rareSteps[rareStepIndex]);
-    }, 540);
+      revealCursor += revealNow;
+
+      const glitchChance = 0.22 + (progress * 0.72);
+      if (Math.random() < glitchChance) {
+        triggerShredderGlitch();
+      }
+    }, effectProfile.isMobileLike ? 46 : 38);
+
+    let messageTimer = null;
+    const fullCoverHoldMs = 220;
+    window.setTimeout(() => {
+      window.clearInterval(preBuildTimer);
+      revealables.forEach(node => node.classList.add('active'));
+      document.documentElement.style.setProperty('--pre-rare-progress', '1');
+      if (preRareOverlay) {
+        preRareOverlay.classList.add('full-cover');
+      }
+
+      window.setTimeout(() => {
+        if (preRareOverlay) {
+          preRareOverlay.classList.remove('active');
+          preRareOverlay.classList.remove('full-cover');
+          preRareOverlay.innerHTML = '';
+        }
+
+        document.body.classList.remove('pre-rare-distort');
+        document.documentElement.style.setProperty('--pre-rare-progress', '0');
+        document.documentElement.style.setProperty('--pre-rare-shift-x', '0px');
+        document.documentElement.style.setProperty('--pre-rare-shift-y', '0px');
+
+        rareScreen.classList.add('active');
+
+        renderRareStep(rareSteps[0]);
+        messageTimer = window.setInterval(() => {
+          rareStepIndex += 1;
+          if (rareStepIndex >= rareSteps.length) {
+            window.clearInterval(messageTimer);
+            return;
+          }
+          renderRareStep(rareSteps[rareStepIndex]);
+        }, 540);
+      }, fullCoverHoldMs);
+    }, preBuildDurationMs);
 
     const distortionTimer = window.setInterval(() => {
       const xShift = ((Math.random() - 0.5) * 12).toFixed(2);
@@ -1304,13 +1545,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 70);
 
     window.setTimeout(() => {
+      window.clearInterval(preBuildTimer);
       window.clearInterval(distortionTimer);
-      window.clearInterval(messageTimer);
+      if (messageTimer) {
+        window.clearInterval(messageTimer);
+      }
       document.body.classList.remove('rare-distorting');
+      document.body.classList.remove('pre-rare-distort');
+      document.documentElement.style.setProperty('--pre-rare-progress', '0');
+      document.documentElement.style.setProperty('--pre-rare-shift-x', '0px');
+      document.documentElement.style.setProperty('--pre-rare-shift-y', '0px');
       rareScreen.classList.remove('active');
+      rareScreen.classList.remove('pre-glitch');
       document.documentElement.style.setProperty('--rare-shift-x', '0px');
       document.documentElement.style.setProperty('--rare-shift-y', '0px');
       document.documentElement.style.setProperty('--rare-hue-shift', '0deg');
+
+      if (preRareOverlay) {
+        preRareOverlay.classList.remove('active');
+        preRareOverlay.classList.remove('full-cover');
+        preRareOverlay.innerHTML = '';
+      }
 
       if (rareTitle) rareTitle.textContent = 'System Error';
       if (rareText) rareText.textContent = 'Signal Desynchronizing';
@@ -1320,6 +1575,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (globalNav) globalNav.style.pointerEvents = '';
       if (footer) footer.style.pointerEvents = '';
       if (versionTag) versionTag.style.pointerEvents = '';
-    }, 3200);
+    }, preBuildDurationMs + fullCoverHoldMs + 3200);
   }
 });
