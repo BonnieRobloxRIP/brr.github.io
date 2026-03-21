@@ -1,146 +1,2198 @@
-window.BSECatalog = (() => {
-  const defaultClassInfo = [
-    "Name: <string> - unique name used by links, outputs, and references.",
-    "Start Disabled: <boolean> - when true, this block is inactive until enabled."
-  ];
+<!DOCTYPE html>
+<html lang="en">
 
-  const outputTemplate = [
-    "Output Name: <string> - identifier for this output entry.",
-    "Output Type: <dropdown> - usually onTrue / onFalse / onTouch (or block-specific events).",
-    "Output Target: <dropdown> - another named block to receive this output.",
-    "Target Class Info: <dropdown> - class-info field on the target block to edit.",
-    "Target Info Value: <string|boolean|number> - value to assign to the chosen target field.",
-    "Delay (in ticks): <int> - wait time before this output is applied."
-  ];
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; script-src-elem 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: https:; connect-src 'self' https://cloudflareinsights.com https://*.cloudflareinsights.com;">
+    <link rel="preload" href="assets/home.png" as="image">
+    <link rel="preload" href="assets/power_button.png" as="image">
+    <link rel="preload" href="assets/brr_trigger.png" as="image">
+    <link rel="preload" href="assets/bonnie_tech_logo.png" as="image">
+    <title>Block System Wiki</title>
+    <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('assets/minecraft_font.ttf') format('truetype');
+        }
 
-  const existingOutputTemplate = [
-    "Existing Outputs lists every saved output for this block.",
-    "Toggle delete for any output you want removed, then save.",
-    "Output names are used so you can identify/remove the right link quickly."
-  ];
+        :root {
+            --bg-main: #141414;
+            --bg-card: #1f1f1f;
+            --bg-modal: #121212;
+            --text-main: #f4f4f4;
+            --text-dim: #bcbcbc;
+            --text-muted: #8d8d8d;
+            --header-text: #efefef;
+            --border-light: #787878;
+            --border-dark: #060606;
+            --highlight: #f2f2f2;
+            --highlight-hover: #ffffff;
+            --input-bg: #0d0d0d;
+            --danger: #b44545;
+            --panel-tint: rgba(0, 0, 0, 0.28);
+            --nav-btn-size: 32px;
+            --nav-edge-offset: 4px;
+            --header-nav-offset: calc(var(--nav-btn-size) + var(--nav-edge-offset) + 16px);
+            --page-gradient-a: rgba(12, 12, 12, 0.92);
+            --page-gradient-b: rgba(28, 28, 28, 0.96);
+            --page-glow-a: rgba(255, 255, 255, 0.06);
+            --page-glow-b: rgba(255, 255, 255, 0.03);
+            --header-bg-start: #232323;
+            --header-bg-end: #161616;
+            --header-accent: var(--highlight);
+            --panel-bg: rgba(15, 15, 15, 0.88);
+            --panel-bg-soft: rgba(24, 24, 24, 0.88);
+            --panel-bg-strong: rgba(10, 10, 10, 0.94);
+            --card-glow: rgba(255, 255, 255, 0.04);
+            --tab-strip-bg: #242424;
+            --tab-btn-bg: #343434;
+            --tab-btn-text: #dfdfdf;
+            --tab-panel-border: #4f4f4f;
+            --filter-bg: #101010;
+            --filter-text: var(--text-main);
+            --filter-border: var(--border-light);
+            --scroll-track: #090909;
+            --scroll-thumb: #7f7f7f;
+            --scroll-thumb-edge: #d6d6d6;
+            --footer-bg: rgba(0, 0, 0, 0.86);
+            --footer-text: #7c7c7c;
+            --rare-overlay-a: rgba(255, 80, 42, 0.24);
+            --rare-overlay-b: rgba(0, 0, 0, 0.96);
+            --rare-solid-bg: #070707;
+            --rare-title-color: #ff5f5f;
+            --rare-text-color: #ffffff;
+            --rare-subtext-color: rgba(255, 255, 255, 0.86);
+            --rare-shift-x: 0px;
+            --rare-shift-y: 0px;
+            --rare-hue-shift: 0deg;
+        }
 
-  const inputTemplate = [
-    "Inputs are read-only links from other blocks that target this block.",
-    "Each entry typically shows source block name + source output name.",
-    "If this block has no name yet, it cannot be targeted by outputs."
-  ];
+        body[data-theme='dark'] {
+            --bg-main: #141414;
+            --bg-card: #1f1f1f;
+            --bg-modal: #121212;
+            --text-main: #f4f4f4;
+            --text-dim: #bcbcbc;
+            --text-muted: #8d8d8d;
+            --header-text: #efefef;
+            --border-light: #787878;
+            --border-dark: #060606;
+            --highlight: #f2f2f2;
+            --highlight-hover: #ffffff;
+            --input-bg: #0d0d0d;
+            --page-gradient-a: rgba(12, 12, 12, 0.92);
+            --page-gradient-b: rgba(28, 28, 28, 0.96);
+            --page-glow-a: rgba(255, 255, 255, 0.06);
+            --page-glow-b: rgba(255, 255, 255, 0.03);
+            --header-bg-start: #232323;
+            --header-bg-end: #161616;
+            --panel-bg: rgba(15, 15, 15, 0.88);
+            --panel-bg-soft: rgba(24, 24, 24, 0.88);
+            --panel-bg-strong: rgba(10, 10, 10, 0.94);
+            --tab-strip-bg: #242424;
+            --tab-btn-bg: #343434;
+            --tab-btn-text: #dfdfdf;
+            --tab-panel-border: #4f4f4f;
+            --filter-bg: #101010;
+            --scroll-track: #090909;
+            --scroll-thumb: #7f7f7f;
+            --scroll-thumb-edge: #d6d6d6;
+            --footer-bg: rgba(0, 0, 0, 0.86);
+            --footer-text: #7c7c7c;
+        }
 
-  const iconMap = {
-    tool_trigger: "assets/brr_trigger.png",
-    tool_areaportal: "assets/brr_areaPortal.png",
-    info_playerspawn: "assets/info_playerspawn.png",
-    info_target_areaportal: "assets/info_target_areaportal.png",
-    tool_playerclip: "assets/brr_playerClip.png",
-    tool_invisible: "assets/brr_invisible.png",
-    tool_blocklight: "assets/brr_blockLight.png",
-    game_nametag: "assets/game_nametag.png"
-  };
+        body[data-theme='light'] {
+            --bg-main: #e8e8e8;
+            --bg-card: #f5f5f5;
+            --bg-modal: #efefef;
+            --text-main: #1a1a1a;
+            --text-dim: #4a4a4a;
+            --text-muted: #6a6a6a;
+            --header-text: #1c1c1c;
+            --border-light: #f0f0f0;
+            --border-dark: #7a7a7a;
+            --highlight: #222222;
+            --highlight-hover: #1a1a1a;
+            --input-bg: #f0f0f0;
+            --page-gradient-a: rgba(250, 250, 250, 0.96);
+            --page-gradient-b: rgba(218, 218, 218, 0.96);
+            --page-glow-a: rgba(0, 0, 0, 0.04);
+            --page-glow-b: rgba(0, 0, 0, 0.03);
+            --header-bg-start: #f6f6f6;
+            --header-bg-end: #d9d9d9;
+            --panel-bg: rgba(255, 255, 255, 0.94);
+            --panel-bg-soft: rgba(244, 244, 244, 0.94);
+            --panel-bg-strong: rgba(235, 235, 235, 0.98);
+            --tab-strip-bg: #d9d9d9;
+            --tab-btn-bg: #b6b6b6;
+            --tab-btn-text: #202020;
+            --tab-panel-border: #bdbdbd;
+            --filter-bg: #ffffff;
+            --filter-text: #161616;
+            --filter-border: #888888;
+            --scroll-track: #d5d5d5;
+            --scroll-thumb: #9f9f9f;
+            --scroll-thumb-edge: #ffffff;
+            --footer-bg: rgba(232, 232, 232, 0.94);
+            --footer-text: #4e4e4e;
+            --rare-overlay-a: rgba(255, 255, 255, 0.2);
+            --rare-overlay-b: rgba(30, 30, 30, 0.96);
+            --rare-solid-bg: #1b1b1b;
+            --rare-title-color: #ff7878;
+            --rare-text-color: #ffffff;
+            --rare-subtext-color: rgba(255, 255, 255, 0.9);
+        }
 
-  const entries = [
-    {
-      id: "tool_trigger",
-      name: "Trigger Tool",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Detects entities or players and conditionally executes commands.",
-      usage: "Use this for touch or logic triggers with condition checks and outputs.",
-      example: "Run an action only when a tagged player enters a trigger zone.",
-      classInfo: [...defaultClassInfo]
-    },
-    {
-      id: "tool_areaportal",
-      name: "Area Portal Tool",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Teleports selected entities to coordinates or a named target.",
-      usage: "Pick a selector and either a destination position or destination target block.",
-      example: "Teleport players from a lobby portal into a map entrance.",
-      classInfo: [...defaultClassInfo]
-    },
-    {
-      id: "info_playerspawn",
-      name: "Info Playerspawn",
-      category: "Logic",
-      menuGroup: "logic",
-      summary: "Defines spawn behavior for the map using world spawn and optional per-player spawn points.",
-      usage: "Use one active playerspawn block at a time. Set world spawn at block or coordinates, then optionally set player spawn points too.",
-      example: "Set your lobby as global spawn and optionally force each player spawnpoint to that location.",
-      classInfo: [
-        ...defaultClassInfo,
-        "World Spawn At Block: <boolean> - true uses this block location as world spawn.",
-        "World Spawn: <x y z> - coordinate string used when World Spawn At Block is false.",
-        "Set Player Spawn Point: <boolean> - when true, updates player spawn points to this location."
-      ]
-    },
-    {
-      id: "info_target_areaportal",
-      name: "Info Target AreaPortal",
-      category: "Logic",
-      menuGroup: "logic",
-      summary: "Named destination marker block used by Area Portal destination-block routing.",
-      usage: "Give it a unique name, then set Area Portal destination block to that name.",
-      example: "Name this block Arena_Entry and route several area portals to it.",
-      classInfo: [
-        ...defaultClassInfo,
-        "Facing Direction: <string> - optional orientation metadata for destination behavior."
-      ]
-    },
-    {
-      id: "tool_playerclip",
-      name: "Player Clip Tool",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Blocks players while allowing configured exceptions.",
-      usage: "Use gamemode, operator, or selector-based exclusions.",
-      example: "Allow only creative builders to pass through a blocked zone.",
-      supportsOutputs: false,
-      classInfo: [
-        ...defaultClassInfo,
-        "Exclude Operators: <boolean> - operators can pass through when true.",
-        "Exclude Gamemode: <none|survival|creative|adventure|spectator> - players in this gamemode are ignored.",
-        "Exclude Selector: <selector|string> - matching players are ignored by clip behavior."
-      ]
-    },
-    {
-      id: "tool_invisible",
-      name: "Tool Invisible",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Invisible collision helper block that can be toggled active/inactive.",
-      usage: "Use to create invisible collision boundaries controlled by Start Disabled.",
-      example: "Build invisible boundaries for map flow.",
-      supportsOutputs: false,
-      classInfo: [...defaultClassInfo]
-    },
-    {
-      id: "tool_blocklight",
-      name: "Tool Blocklight",
-      category: "Tools",
-      menuGroup: "tools",
-      summary: "Utility block that only blocks light when enabled.",
-      usage: "Use as an invisible blocklight helper. It has no output system and only supports basic toggling.",
-      example: "Place in hidden seams to stop light leak paths.",
-      supportsOutputs: false,
-      classInfo: [...defaultClassInfo]
-    },
-    {
-      id: "game_nametag",
-      name: "Game Nametag",
-      category: "Game",
-      menuGroup: "game",
-      summary: "Creates custom nametag labels used in usernames and chat prefixes.",
-      usage: "Configure custom label behavior for chat and nametag presentation.",
-      example: "Show a lobby or event label beside a player's name.",
-      classInfo: [...defaultClassInfo]
-    }
-  ];
+        body[data-theme='blackmesa'] {
+            --bg-main: #14100e;
+            --bg-card: #1f1a17;
+            --bg-modal: #14100e;
+            --text-main: #f2efe9;
+            --text-dim: #c9b8a6;
+            --text-muted: #9e8b76;
+            --header-text: #f4efe7;
+            --border-light: #f0811a;
+            --border-dark: #0c0705;
+            --highlight: #f5811f;
+            --highlight-hover: #ffb347;
+            --input-bg: rgba(9, 18, 37, 0.22);
+            --page-gradient-a: rgba(20, 14, 10, 0.94);
+            --page-gradient-b: rgba(7, 7, 7, 0.97);
+            --page-glow-a: rgba(245, 129, 31, 0.16);
+            --page-glow-b: rgba(255, 179, 71, 0.05);
+            --header-bg-start: #2d2825;
+            --header-bg-end: #191412;
+            --panel-bg: rgba(22, 18, 16, 0.9);
+            --panel-bg-soft: rgba(32, 26, 23, 0.92);
+            --panel-bg-strong: rgba(18, 14, 12, 0.96);
+            --tab-strip-bg: #211b17;
+            --tab-btn-bg: #2d2621;
+            --tab-btn-text: #f1e2d1;
+            --tab-panel-border: #f0811a;
+            --filter-bg: rgba(18, 14, 12, 0.94);
+            --filter-text: #f7f0e6;
+            --filter-border: #f0811a;
+            --scroll-track: #1a120d;
+            --scroll-thumb: #f0811a;
+            --scroll-thumb-edge: #ffd08b;
+            --footer-bg: rgba(14, 10, 8, 0.92);
+            --footer-text: #c48249;
+            --rare-solid-bg: #0f0a08;
+            --rare-title-color: #ffb15a;
+            --rare-text-color: #ffe6c7;
+            --rare-subtext-color: rgba(255, 224, 188, 0.88);
+        }
 
-  return {
-    entries,
-    defaultClassInfo,
-    outputTemplate,
-    existingOutputTemplate,
-    inputTemplate,
-    iconMap
-  };
-})();
+        body[data-theme='xen'] {
+            --bg-main: #0a1023;
+            --bg-card: #121b36;
+            --bg-modal: #0b1328;
+            --text-main: #eef3ff;
+            --text-dim: #bfd0ff;
+            --text-muted: #8fa0d6;
+            --header-text: #eff5ff;
+            --border-light: #6d7dff;
+            --border-dark: #040817;
+            --highlight: #73e0ff;
+            --highlight-hover: #c1a2ff;
+            --input-bg: #0d1630;
+            --page-gradient-a: rgba(11, 13, 48, 0.95);
+            --page-gradient-b: rgba(5, 21, 63, 0.97);
+            --page-glow-a: rgba(132, 97, 255, 0.24);
+            --page-glow-b: rgba(81, 214, 255, 0.12);
+            --header-bg-start: #171f43;
+            --header-bg-end: #0d1430;
+            --panel-bg: rgba(10, 17, 42, 0.9);
+            --panel-bg-soft: rgba(16, 24, 58, 0.92);
+            --panel-bg-strong: rgba(8, 13, 34, 0.97);
+            --tab-strip-bg: #141b3c;
+            --tab-btn-bg: #24306a;
+            --tab-btn-text: #e6eeff;
+            --tab-panel-border: #5467df;
+            --filter-bg: rgba(10, 17, 42, 0.96);
+            --filter-text: #eef3ff;
+            --filter-border: #5668ef;
+            --scroll-track: #0b1330;
+            --scroll-thumb: #576ded;
+            --scroll-thumb-edge: #b7c4ff;
+            --footer-bg: rgba(7, 10, 29, 0.9);
+            --footer-text: #94a7df;
+            --rare-overlay-a: rgba(50, 223, 255, 0.22);
+            --rare-overlay-b: rgba(1, 5, 22, 0.97);
+            --rare-solid-bg: #010616;
+            --rare-title-color: #8be6ff;
+            --rare-text-color: #eef3ff;
+            --rare-subtext-color: rgba(216, 227, 255, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(circle at 18% 12%, var(--page-glow-a), transparent 42%),
+                radial-gradient(circle at 84% 78%, var(--page-glow-b), transparent 36%),
+                linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
+            font-family: 'Minecraft', monospace;
+            overflow: hidden;
+            color: var(--text-main);
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            overscroll-behavior: none;
+            transition: background 0.2s ease-out, color 0.2s ease-out;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+        }
+
+        body[data-theme='xen']::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 18% 12%, rgba(132, 97, 255, 0.4), transparent 42%),
+                radial-gradient(circle at 84% 78%, rgba(81, 214, 255, 0.35), transparent 36%),
+                radial-gradient(circle at 5% 82%, rgba(115, 224, 255, 0.3), transparent 40%),
+                radial-gradient(circle at 92% 22%, rgba(201, 162, 255, 0.25), transparent 38%),
+                radial-gradient(circle, rgba(200, 200, 255, 0.65) 0 0.8px, transparent 1.2px),
+                radial-gradient(circle, rgba(220, 220, 255, 0.5) 0 1px, transparent 1.5px),
+                radial-gradient(circle, rgba(180, 200, 255, 0.6) 0 0.6px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 90px 90px, 140px 140px, 110px 110px;
+            background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 30px 50px, 20px 30px;
+            background-attachment: fixed;
+            opacity: 1;
+            animation: xenTwinkle1 6s ease-in-out infinite 0s,
+                        xenTwinkle2 7s ease-in-out infinite 1s,
+                        xenTwinkle3 8s ease-in-out infinite 2s;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            image-rendering: pixelated;
+        }
+
+        /* --- SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background: var(--scroll-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--scroll-thumb);
+            border: 2px solid var(--scroll-thumb-edge);
+            border-right-color: var(--border-light);
+            border-bottom-color: var(--border-light);
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scroll-track);
+            border-left: 2px solid var(--border-dark);
+        }
+
+        /* --- GLOBAL UI */
+        #version-tag {
+            z-index: 9990;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            color: var(--highlight);
+            font-family: 'Minecraft', monospace;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+            z-index: 9500;
+            padding: 5px 10px;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        #global-nav {
+            position: fixed;
+            z-index: 9500;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            top: var(--nav-edge-offset);
+            left: var(--nav-edge-offset);
+            top: calc(env(safe-area-inset-top) + var(--nav-edge-offset));
+            left: calc(env(safe-area-inset-left) + var(--nav-edge-offset));
+        }
+
+        .nav-btn {
+            width: var(--nav-btn-size);
+            height: var(--nav-btn-size);
+            background: var(--bg-card);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000;
+        }
+
+        .nav-btn.hidden {
+            display: none;
+        }
+
+        .nav-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        #theme-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        #power-btn {
+            background: #300;
+        }
+
+        #power-btn:hover {
+            background: #500;
+        }
+
+        #home-btn, #theme-btn {
+            background: var(--button-bg, var(--bg-card));
+        }
+
+        body[data-theme='dark'] #home-btn,
+        body[data-theme='dark'] #theme-btn {
+            background: var(--input-bg);
+        }
+
+        body[data-theme='light'] #home-btn,
+        body[data-theme='light'] #theme-btn {
+            background: #666666;
+        }
+
+        body[data-theme='blackmesa'] #home-btn,
+        body[data-theme='blackmesa'] #theme-btn {
+            background: #2d2621;
+        }
+
+        body[data-theme='xen'] #home-btn,
+        body[data-theme='xen'] #theme-btn {
+            background: #1a2952;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 5px;
+            font-size: 0.8rem;
+            border-top: 2px solid var(--border-dark);
+            z-index: 9000;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .screen-header-container {
+            flex-shrink: 0;
+            /* Don't shrink */
+            background: linear-gradient(180deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+            color: var(--header-text);
+            padding: 15px 20px;
+            border-bottom: 4px solid var(--border-dark);
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .screen-header-container h1 {
+            margin: 0;
+            font-size: 2rem;
+            text-shadow: none;
+        }
+
+        .screen-header-container.with-nav-offset {
+            padding-left: var(--header-nav-offset);
+        }
+
+        .screen-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .screen-header-action {
+            margin-right: 20px;
+        }
+
+        .toolbar-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-select {
+            min-width: 168px;
+            background: var(--filter-bg);
+            color: var(--filter-text);
+            border: 2px solid var(--filter-border);
+            font-family: inherit;
+            padding: 8px 10px;
+        }
+
+        .tools-search {
+            background: var(--filter-bg);
+            color: var(--filter-text);
+            padding: 5px 10px;
+        }
+
+        .screen-content-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        /* --- SCREENS */
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding-bottom: 40px;
+            flex-direction: column;
+            /* Space for footer */
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        body.app-booting {
+            overflow: hidden;
+        }
+
+        body.app-booting .screen,
+        body.app-booting #global-nav,
+        body.app-booting .footer,
+        body.app-booting #version-tag,
+        body.app-booting .scanlines,
+        body.app-booting #glitch-clone {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
+        }
+
+        body.app-ready .screen,
+        body.app-ready #global-nav,
+        body.app-ready .footer,
+        body.app-ready #version-tag,
+        body.app-ready .scanlines,
+        body.app-ready #glitch-clone {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        body.app-booting #flicker-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.app-ready #flicker-overlay {
+            opacity: 0;
+            visibility: visible;
+            pointer-events: none;
+        }
+
+        #boot-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            background: #090909;
+            color: #e3e3e3;
+            transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
+        }
+
+        #boot-overlay img {
+            width: 96px;
+            height: 96px;
+            image-rendering: pixelated;
+            object-fit: contain;
+            opacity: 0.95;
+        }
+
+        .boot-title {
+            color: var(--highlight);
+            font-size: 1.25rem;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+            max-width: min(90vw, 640px);
+        }
+
+        .boot-subtitle {
+            color: #bdbdbd;
+            font-size: 0.86rem;
+            letter-spacing: 0.03em;
+            min-height: 1.2em;
+            max-width: min(88vw, 560px);
+        }
+
+        body.app-ready #boot-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* --- MAIN MENU */
+        #main-menu {
+            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
+            /* Dark semi-transparent */
+            backdrop-filter: blur(5px);
+        }
+
+        /* Specific display type when active */
+        #main-menu.active {
+            display: flex;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 1;
+            /* Left half */
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%);
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 5px 5px 0 #000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        /* Right Column Container */
+        .right-column {
+            flex: 1;
+            /* Right half */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .welcome-panel {
+            flex: 3;
+            /* 3/4 height of right column */
+            background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            padding: 30px;
+            box-shadow: 5px 5px 0 #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .socials-panel {
+            flex: 1;
+            /* 1/4 height of right column */
+            background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            padding: 15px;
+            box-shadow: 5px 5px 0 #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        /* Menu Internals */
+        .menu-title {
+            font-size: 2rem;
+            color: var(--highlight);
+            text-decoration: underline;
+            text-underline-offset: 8px;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        .main-menu-btn {
+            background: var(--input-bg);
+            border: 2px solid var(--border-light);
+            color: var(--text-main);
+            padding: 15px;
+            font-family: 'Minecraft';
+            font-size: 1.2rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            padding-left: 15px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            object-fit: contain;
+        }
+
+        .btn-space-between {
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .main-menu-btn:hover {
+            background: var(--highlight);
+            color: var(--bg-main);
+            transform: translateX(5px);
+        }
+
+        #main-menu.active {
+            flex-direction: row;
+        }
+
+        .divider {
+            height: 4px;
+            background: var(--border-light);
+            border-bottom: 2px solid #000;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .welcome-header {
+            font-size: 4rem;
+            color: var(--highlight);
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+            margin: 0 0 20px 0;
+        }
+
+        .welcome-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            color: var(--text-dim);
+        }
+
+        .social-link {
+            width: 64px;
+            height: 64px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .social-link:hover {
+            transform: scale(1.1);
+            border: 2px solid var(--highlight);
+        }
+
+        .social-link img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        /* --- SUB PAGES */
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 20px 20px;
+            /* Top padding for nav buttons */
+        }
+
+        .page-header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-bottom: 4px solid var(--border-dark);
+            margin-bottom: 30px;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+        }
+
+        .howto-box {
+            background: var(--panel-bg-strong);
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            padding: 40px;
+            min-height: 60vh;
+        }
+
+        .howto-box h2 {
+            color: var(--highlight);
+            border-bottom: 2px dashed var(--border-light);
+            padding-bottom: 10px;
+        }
+
+        .howto-box p {
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+
+        .block-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .block-card {
+            background: var(--bg-card);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s, border-color 0.1s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            box-shadow: 4px 4px 0 #000;
+            padding: 10px;
+            min-height: 210px;
+            gap: 8px;
+            font-family: inherit;
+            color: inherit;
+            backdrop-filter: blur(2px);
+        }
+
+        .block-card:hover {
+            transform: translateY(-2px);
+            background: color-mix(in srgb, var(--bg-card) 84%, var(--highlight) 16%);
+            border-color: var(--highlight) var(--border-dark) var(--border-dark) var(--highlight);
+            z-index: 10;
+        }
+
+        .block-card:active {
+            transform: translateY(1px);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 96px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.3));
+            border: 2px solid #151515;
+        }
+
+        .card-text-slot {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 5px;
+            min-height: 1.2em;
+        }
+
+        .card-img {
+            width: 84px;
+            height: 84px;
+            image-rendering: pixelated;
+            object-fit: contain;
+            display: block;
+        }
+
+        .card-category {
+            font-size: 0.68rem;
+            color: var(--highlight);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            color: var(--highlight);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+            line-height: 1.25;
+            min-height: 2.4em;
+        }
+
+        .card-summary {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            line-height: 1.35;
+            opacity: 0.9;
+            min-height: 3.7em;
+        }
+
+        .catalog-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 14px;
+            padding: 8px 12px;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-dark);
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.74rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        }
+
+        .catalog-empty {
+            text-align: center;
+            color: var(--text-dim);
+            margin: 30px 0;
+            display: none;
+            font-size: 0.92rem;
+        }
+
+        /* --- MODAL (Not used but will stay here in case it's needed up until the website release) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-window {
+            background: var(--bg-modal);
+            width: 800px;
+            max-width: 90%;
+            height: 80vh;
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 10px 10px 0 #000;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 10px 15px;
+            background: var(--highlight);
+            color: var(--bg-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--border-dark);
+            cursor: grab;
+            user-select: none;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .modal-big-img {
+            display: block;
+            margin: 0 auto 20px;
+            width: 128px;
+            height: 128px;
+            border: 2px solid var(--border-dark);
+            background: rgba(0, 0, 0, 0.2);
+            object-fit: contain;
+        }
+
+        .section-title {
+            border-bottom: 2px solid var(--border-dark);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            color: var(--highlight);
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        .desc-box {
+            background: var(--input-bg);
+            padding: 10px;
+            border: 2px solid var(--border-dark);
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .detail-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 14px 0;
+        }
+
+        .detail-chip {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-dark);
+            padding: 4px 8px;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .detail-list {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-dim);
+            line-height: 1.55;
+        }
+
+        .detail-list li {
+            margin-bottom: 5px;
+        }
+
+        .detail-muted {
+            color: var(--text-dim);
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border-dark);
+        }
+
+        .property-key {
+            color: var(--text-dim);
+        }
+
+        .property-val {
+            text-align: right;
+            color: var(--text-main);
+        }
+
+        details {
+            background: var(--bg-card);
+            border: 2px solid var(--border-dark);
+            margin-bottom: 10px;
+        }
+
+        summary {
+            padding: 10px;
+            cursor: pointer;
+            color: var(--highlight);
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        summary::after {
+            content: '+';
+            color: var(--text-main);
+        }
+
+        details[open] summary::after {
+            content: '-';
+        }
+
+        .details-inner {
+            padding: 10px;
+            border-top: 1px solid var(--border-dark);
+            background: var(--input-bg);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #detail-screen {
+            z-index: 9980;
+        }
+
+        .pixel-btn {
+            background: var(--bg-card);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            color: var(--text-main);
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .pixel-btn:active {
+            border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+            transform: translateY(2px);
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 0;
+            padding-left: 20px;
+            background: var(--tab-strip-bg);
+            padding-top: 10px;
+        }
+
+        .tab-btn {
+            background: var(--tab-btn-bg);
+            color: var(--tab-btn-text);
+            border: 2px solid var(--border-light);
+            border-bottom: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Minecraft';
+            font-size: 1rem;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--highlight);
+            border-color: var(--border-light);
+            border-bottom: 2px solid var(--bg-card);
+            margin-bottom: -2px;
+            z-index: 10;
+        }
+
+        .detail-body {
+            background: var(--bg-card);
+            border: 4px solid var(--tab-panel-border);
+            padding: 20px;
+            min-height: 500px;
+            margin: 0 20px 20px 20px;
+        }
+
+        /* --- VISUAL EFFECTS */
+        html {
+            height: 100%;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9997;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.42) 50%, rgba(0, 0, 0, 0.42));
+            background-size: 100% 4px;
+            animation: scanlineMove 0.4s linear infinite;
+            opacity: 0.42;
+            transition: opacity 5s ease-in-out;
+        }
+
+        @keyframes scanlineMove {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 0 4px;
+            }
+        }
+
+        @keyframes xenTwinkle1 {
+            0%, 10%, 20%, 100% { opacity: 0.65; }
+            5%, 15% { opacity: 0.15; }
+        }
+
+        @keyframes xenTwinkle2 {
+            0%, 100% { opacity: 0.5; }
+            25%, 35% { opacity: 0.08; }
+            30% { opacity: 0.4; }
+        }
+
+        @keyframes xenTwinkle3 {
+            0%, 100% { opacity: 0.6; }
+            40%, 55% { opacity: 0.1; }
+            45% { opacity: 0.55; }
+        }
+
+        .screen,
+        #global-nav {
+            z-index: 9990;
+        }
+
+        #flicker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9996;
+            background: black;
+            opacity: 0;
+            mix-blend-mode: hard-light;
+            transition: opacity 0.05s ease-out;
+        }
+
+        #glitch-clone {
+            position: fixed;
+            inset: 0;
+            z-index: 9995;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .glitch-bar {
+            position: absolute;
+            left: 0;
+            opacity: 0;
+            will-change: transform, opacity;
+            mix-blend-mode: screen;
+            transform: translate3d(0, 0, 0);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.22);
+            transition: opacity 0.06s ease-out;
+        }
+
+        body.glitch-hit .screen.active,
+        body.glitch-hit .footer,
+        body.glitch-hit #global-nav {
+            transform: translateX(1px);
+        }
+
+        /* Rare Screen */
+        #rare-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--rare-solid-bg);
+            background-image: radial-gradient(circle at 50% 44%, var(--rare-overlay-a), transparent 42%);
+            z-index: 10010;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            filter: hue-rotate(var(--rare-hue-shift));
+            pointer-events: auto;
+            opacity: 0;
+            transform: scale(1.02);
+            transition: opacity 0.2s ease-out, transform 0.22s ease-out;
+        }
+
+        #rare-screen::before,
+        #rare-screen::after {
+            content: '';
+            position: absolute;
+            inset: -4%;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0px, rgba(0, 0, 0, 0.16) 3px, rgba(255, 255, 255, 0.03) 3px, rgba(255, 255, 255, 0.03) 6px);
+            mix-blend-mode: normal;
+        }
+
+        #rare-screen::before {
+            transform: translateX(calc(var(--rare-shift-x) * -0.6));
+            opacity: 0.28;
+            filter: saturate(2);
+        }
+
+        #rare-screen::after {
+            transform: translateX(calc(var(--rare-shift-x) * 0.6));
+            opacity: 0.22;
+            filter: hue-rotate(42deg);
+        }
+
+        #pre-rare-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10006;
+            pointer-events: none;
+            overflow: hidden;
+            background: transparent;
+            transition: background 0.12s steps(2);
+        }
+
+        #pre-rare-overlay::before,
+        #pre-rare-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s linear;
+        }
+
+        #pre-rare-overlay::before {
+            background:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, rgba(0, 0, 0, 0.06) 2px 4px),
+                repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 3px, rgba(255, 255, 255, 0.04) 3px 7px);
+            mix-blend-mode: screen;
+        }
+
+        #pre-rare-overlay::after {
+            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+        }
+
+        #pre-rare-overlay.active {
+            display: block;
+        }
+
+        body.pre-rare-distort #pre-rare-overlay::before {
+            opacity: calc(0.08 + var(--pre-rare-progress, 0) * 0.52);
+        }
+
+        body.pre-rare-distort #pre-rare-overlay::after {
+            opacity: calc(0.12 + var(--pre-rare-progress, 0) * 0.5);
+        }
+
+        #pre-rare-overlay.full-cover {
+            background: rgba(0, 0, 0, 1);
+        }
+
+        .pre-rare-box {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            image-rendering: pixelated;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+        }
+
+        .pre-rare-box.active {
+            opacity: calc(0.35 + var(--pre-rare-progress, 0) * 0.65);
+            transform: scale(1);
+        }
+
+        .pre-rare-fragment {
+            position: absolute;
+            overflow: hidden;
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.94);
+            mix-blend-mode: screen;
+            filter: contrast(1.1) saturate(0.88);
+            transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+        }
+
+        .pre-rare-fragment.active {
+            opacity: calc(0.16 + var(--pre-rare-progress, 0) * 0.54);
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .pre-rare-fragment-content {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .pre-rare-fragment-content .screen {
+            margin: 0;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        body.pre-rare-distort .screen.active,
+        body.pre-rare-distort .footer,
+        body.pre-rare-distort #global-nav,
+        body.pre-rare-distort #version-tag {
+            animation: none;
+            transform: translate3d(var(--pre-rare-shift-x, 0px), var(--pre-rare-shift-y, 0px), 0) scale(calc(1 + var(--pre-rare-progress, 0) * 0.012));
+            filter: blur(calc(var(--pre-rare-progress, 0) * 1.1px)) contrast(calc(1 + var(--pre-rare-progress, 0) * 0.45));
+            transition: transform 0.06s steps(2), filter 0.08s linear;
+        }
+
+        @keyframes preRareJitter {
+            0% {
+                transform: translate(0, 0);
+                filter: none;
+            }
+            50% {
+                transform: translate(2px, -1px);
+                filter: contrast(1.05);
+            }
+            100% {
+                transform: translate(-2px, 1px);
+                filter: contrast(0.95);
+            }
+        }
+
+        #rare-screen.active {
+            display: flex;
+            animation: none;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #rare-screen.pre-glitch {
+            display: flex;
+            opacity: 0;
+            transform: scale(1.05);
+        }
+
+        #rare-screen[data-rarity='common'] .rare-logo {
+            animation-duration: 0.28s;
+        }
+
+        #rare-screen[data-rarity='uncommon'] .rare-logo {
+            transform: scale(1.04);
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.14));
+        }
+
+        #rare-screen[data-rarity='rare'] .rare-logo,
+        #rare-screen[data-rarity='legendary'] .rare-logo {
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.22));
+        }
+
+        #rare-screen.critical {
+            box-shadow: inset 0 0 0 3px rgba(255, 86, 86, 0.22), inset 0 0 80px rgba(255, 86, 86, 0.08);
+        }
+
+        .rare-logo {
+            width: 200px;
+            image-rendering: pixelated;
+            margin-bottom: 20px;
+            animation: rareLogoWarp 0.22s steps(2) infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        .rare-text {
+            font-family: 'Minecraft', monospace;
+            color: var(--rare-text-color);
+            font-size: 2rem;
+            text-transform: uppercase;
+            animation: blink 0.5s step-end infinite;
+            text-shadow:
+                calc(var(--rare-shift-x) * -0.25) 0 rgba(255, 0, 0, 0.8),
+                calc(var(--rare-shift-x) * 0.25) 0 rgba(255, 255, 0, 0.8),
+                0 0 12px rgba(255, 255, 255, 0.25);
+            position: relative;
+            z-index: 2;
+        }
+
+        .rare-title {
+            font-family: 'Minecraft', monospace;
+            color: var(--rare-title-color);
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+            text-transform: uppercase;
+        }
+
+        .rare-subtext {
+            font-family: 'Minecraft', monospace;
+            color: var(--rare-subtext-color);
+            font-size: 0.92rem;
+            margin-top: 10px;
+            max-width: min(86vw, 620px);
+            line-height: 1.45;
+            position: relative;
+            z-index: 2;
+        }
+
+        .rare-code {
+            display: none;
+            margin-top: 18px;
+            width: min(84vw, 760px);
+            min-height: 132px;
+            max-height: 180px;
+            overflow: hidden;
+            padding: 12px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.42);
+            color: rgba(255, 255, 255, 0.92);
+            text-align: left;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            font-size: 0.74rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+        }
+
+        .rare-code.active {
+            display: block;
+        }
+
+        .rare-code.crash-mode {
+            border-color: rgba(255, 86, 86, 0.5);
+            background: rgba(24, 0, 0, 0.55);
+            color: #ffd4d4;
+            box-shadow: 0 0 20px rgba(255, 86, 86, 0.18);
+        }
+
+        .rare-side-glitch {
+            position: absolute;
+            top: 8%;
+            bottom: 8%;
+            width: 40px;
+            display: none;
+            pointer-events: none;
+            opacity: 0;
+            background:
+                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0 10px, transparent 10px 22px),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+            image-rendering: pixelated;
+            mix-blend-mode: screen;
+        }
+
+        .rare-side-glitch.left {
+            left: 18px;
+        }
+
+        .rare-side-glitch.right {
+            right: 18px;
+        }
+
+        #rare-screen[data-rarity='rare'] .rare-side-glitch,
+        #rare-screen[data-rarity='legendary'] .rare-side-glitch {
+            display: block;
+            animation: rareSideGlitch 0.18s steps(2) infinite;
+        }
+
+        #rare-screen[data-rarity='legendary'] .rare-side-glitch {
+            width: 54px;
+            opacity: 0.95;
+            animation-duration: 0.12s;
+        }
+
+        #rare-screen[data-variant='blackout-cascade'] {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), inset 0 0 72px rgba(0, 0, 0, 0.28);
+        }
+
+        #rare-screen[data-variant='archive-ghost'] .rare-logo {
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(200, 220, 255, 0.22));
+        }
+
+        #rare-screen[data-variant='sector-lockdown'] {
+            box-shadow: inset 0 0 0 2px rgba(245, 129, 31, 0.18), inset 0 0 72px rgba(245, 129, 31, 0.08);
+        }
+
+        #rare-screen[data-variant='resonance-bloom'] .rare-text {
+            text-shadow:
+                calc(var(--rare-shift-x) * -0.25) 0 rgba(115, 224, 255, 0.86),
+                calc(var(--rare-shift-x) * 0.25) 0 rgba(193, 162, 255, 0.82),
+                0 0 18px rgba(255, 255, 255, 0.28);
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes rareLogoWarp {
+            0% {
+                transform: translateX(-2px) skewX(-4deg);
+            }
+
+            50% {
+                transform: translateX(2px) skewX(4deg);
+            }
+            100% {
+                transform: translateX(-2px) skewX(-4deg);
+            }
+        }
+
+        @keyframes rareSideGlitch {
+            0% {
+                opacity: 0.22;
+                transform: translateX(0);
+                clip-path: inset(0 0 68% 0);
+            }
+
+            25% {
+                opacity: 0.75;
+                transform: translateX(3px);
+                clip-path: inset(12% 0 38% 0);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: translateX(-2px);
+                clip-path: inset(40% 0 18% 0);
+            }
+
+            75% {
+                opacity: 0.82;
+                transform: translateX(4px);
+                clip-path: inset(64% 0 4% 0);
+            }
+
+            100% {
+                opacity: 0.18;
+                transform: translateX(0);
+                clip-path: inset(0 0 72% 0);
+            }
+        }
+
+        body.rare-distorting .screen,
+        body.rare-distorting #global-nav,
+        body.rare-distorting .footer,
+        body.rare-distorting #version-tag {
+            transform: perspective(80px) translateZ(-26px) scale(1.2) translate3d(var(--rare-shift-x), var(--rare-shift-y), 0);
+            transform-origin: center center;
+            filter: hue-rotate(var(--rare-hue-shift)) saturate(1.2);
+            transition: transform 0.08s linear, filter 0.08s linear;
+            pointer-events: none;
+        }
+
+        .theme-picker-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10020;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 35%, rgba(255, 178, 105, 0.12), rgba(0, 0, 0, 0.92));
+            padding: 18px;
+            pointer-events: none;
+        }
+
+        .theme-picker-overlay.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        .theme-picker-overlay[data-dismissible='true'] {
+            cursor: pointer;
+        }
+
+        .theme-picker-overlay[data-dismissible='true'] .theme-picker-modal {
+            cursor: default;
+        }
+
+        .theme-picker-modal {
+            width: min(680px, 100%);
+            background: linear-gradient(180deg, var(--panel-bg-soft), var(--panel-bg-strong));
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            box-shadow: 0 16px 0 rgba(0, 0, 0, 0.45);
+            padding: 16px;
+        }
+
+        .theme-picker-modal h2 {
+            margin: 0 0 10px 0;
+            color: var(--highlight);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-picker-modal p {
+            margin: 0 0 14px 0;
+            color: var(--text-dim);
+            font-size: 0.84rem;
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .theme-option {
+            background: var(--panel-bg);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            color: var(--text-main);
+            text-align: left;
+            padding: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 90px;
+        }
+
+        .theme-option strong {
+            color: var(--highlight);
+            font-size: 0.86rem;
+        }
+
+        .theme-option span {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            line-height: 1.4;
+        }
+
+        .theme-option.selected {
+            border-color: var(--scroll-thumb-edge) var(--border-light) var(--border-light) var(--scroll-thumb-edge);
+            outline: 2px solid var(--highlight);
+            transform: translateY(-1px);
+        }
+
+        .theme-picker-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Search input style */
+        .pixel-input {
+            background: var(--input-bg);
+            border: 2px solid;
+            border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+            color: var(--text-main);
+            padding: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 300px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        @media (max-width: 1100px) {
+            .welcome-header {
+                font-size: 3rem;
+            }
+
+            .welcome-text {
+                font-size: 1.05rem;
+            }
+
+            .pixel-input {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            :root {
+                --nav-btn-size: 40px;
+                --nav-edge-offset: 8px;
+                --header-nav-offset: 12px;
+            }
+
+            body {
+                overflow: auto;
+            }
+
+            #global-nav {
+                flex-direction: row;
+            }
+
+            .footer {
+                padding-bottom: 5px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 5px);
+            }
+
+            .screen {
+                height: 100dvh;
+                min-height: 100dvh;
+                padding-bottom: 52px;
+            }
+
+            #main-menu.active {
+                flex-direction: column;
+                height: 100dvh;
+                min-height: 100dvh;
+                overflow-y: auto;
+            }
+
+            .left-panel,
+            .right-column {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .left-panel {
+                padding: 16px;
+            }
+
+            .right-column {
+                gap: 14px;
+            }
+
+            .welcome-panel {
+                padding: 20px;
+            }
+
+            .welcome-header {
+                font-size: clamp(2rem, 10vw, 2.8rem);
+                margin-bottom: 12px;
+            }
+
+            .welcome-text {
+                font-size: 0.96rem;
+            }
+
+            .menu-title {
+                font-size: 1.45rem;
+            }
+
+            .main-menu-btn {
+                font-size: 1rem;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .btn-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .social-link {
+                width: 54px;
+                height: 54px;
+            }
+
+            .screen-header-container {
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: calc(env(safe-area-inset-top) + 56px) 12px 12px 12px !important;
+            }
+
+            .screen-title-group {
+                width: 100%;
+            }
+
+            .screen-header-container h1 {
+                font-size: 1.15rem;
+                line-height: 1.2;
+            }
+
+            .screen-header-container h3 {
+                font-size: 0.86rem;
+            }
+
+            .screen-header-action {
+                width: 100%;
+                margin-right: 0 !important;
+            }
+
+            .toolbar-controls {
+                width: 100%;
+            }
+
+            .toolbar-select {
+                width: 100%;
+            }
+
+            .pixel-input {
+                width: 100% !important;
+                max-width: 100%;
+                font-size: 0.95rem;
+            }
+
+            .screen-content-scroll {
+                padding: 14px;
+            }
+
+            .theme-options {
+                grid-template-columns: 1fr;
+            }
+
+            .catalog-summary {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .block-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .block-card {
+                min-height: 190px;
+                padding: 8px;
+            }
+
+            .card-img {
+                width: 70px;
+                height: 70px;
+            }
+
+            .card-title {
+                font-size: 0.82rem;
+                min-height: 2.2em;
+            }
+
+            .card-summary {
+                font-size: 0.67rem;
+                min-height: 3.2em;
+            }
+
+            .tab-container {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 8px 12px 0;
+            }
+
+            .tab-btn {
+                flex: 1 1 calc(50% - 8px);
+                text-align: center;
+                padding: 8px 10px;
+                font-size: 0.84rem;
+            }
+
+            .detail-body {
+                margin: 0 0 14px 0;
+                min-height: 0;
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            #version-tag {
+                font-size: 0.92rem;
+                padding: 4px 8px;
+            }
+
+            .screen-content-scroll {
+                padding: 10px;
+            }
+
+            .block-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .howto-box {
+                padding: 20px;
+                min-height: auto;
+            }
+
+            .socials-panel {
+                justify-content: space-between;
+            }
+
+            .footer {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="app-booting">
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="scanlines"></div>
+    <div id="flicker-overlay"></div>
+    <div id="glitch-clone"></div>
+    <div id="pre-rare-overlay" aria-hidden="true"></div>
+
+    <div id="rare-screen">
+        <div class="rare-side-glitch left" aria-hidden="true"></div>
+        <div class="rare-side-glitch right" aria-hidden="true"></div>
+        <img src="assets/bonnie_tech_logo.png" alt="Bonnie Tech" class="rare-logo"
+            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSIjZmZmIj48cGF0aCBkPSJNNTAgMTBMMTAgOTBoODB6Ii8+PC9zdmc+'">
+        <div class="rare-title" id="rare-title">System Error</div>
+        <div class="rare-text" id="rare-text">Signal Desynchronizing</div>
+        <div class="rare-subtext" id="rare-subtext">Collecting fault context...</div>
+        <div class="rare-code" id="rare-code"></div>
+    </div>
+
+    <div class="theme-picker-overlay" id="theme-picker" role="dialog" aria-modal="true"
+        aria-label="Choose your theme">
+        <div class="theme-picker-modal">
+            <h2>Choose Your Theme</h2>
+            <p>Pick a style to preview instantly, then confirm to save it for next time.</p>
+            <div class="theme-options">
+                <button class="theme-option" type="button" data-theme="light" aria-pressed="false">
+                    <strong>Light Mode</strong>
+                    <span>Bright and clean for daytime browsing.</span>
+                </button>
+                <button class="theme-option selected" type="button" data-theme="dark" aria-pressed="true">
+                    <strong>Dark Mode</strong>
+                    <span>Monochrome dark interface with neutral highlights.</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="blackmesa" aria-pressed="false">
+                    <strong>Black Mesa</strong>
+                    <span>Orange-accented industrial UI inspired by the game menus.</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="xen" aria-pressed="false">
+                    <strong>Xen Theme</strong>
+                    <span>Blue and purple space styling for your custom background.</span>
+                </button>
+            </div>
+            <div class="theme-picker-actions">
+                <button class="pixel-btn" id="theme-cancel-btn" type="button" style="margin-right: 10px;">Cancel</button>
+                <button class="pixel-btn" id="theme-confirm-btn" type="button">Confirm Theme</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="boot-overlay" role="status" aria-live="polite" aria-busy="true">
+        <img src="assets/bse_icon_small.png" alt="">
+        <div class="boot-title">Bonnie's Source Engine Encyclopedia</div>
+        <div class="boot-subtitle" id="boot-status">Preparing interface...</div>
+    </div>
+
+    <div style="height: 29px; width: 70px" id="version-tag">v0.1.3</div>
+
+    <div id="global-nav">
+        <div class="nav-btn" id="power-btn" onclick="triggerPowerOff()">
+            <img style="width: 100%; height: 100%" src="assets/power_button.png"
+                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyYTEgMSAwIDAgMSAxIDF2MTBhMSAxIDAgMCAxLTIgMFYzYTEgMSAwIDAgMSAxLTF6bTAgMTRhNyA3IDAgMSAwIDAtMTQgNyA3IDAgMCAwIDAgMTR6Ii8+PC9zdmc+'">
+        </div>
+        <div class="nav-btn hidden" id="home-btn" onclick="navigateTo('main-menu')">
+            <img style="width: 100%; height: 100%" src="assets/home.png"
+                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiA0bC04IDdoMnY4aDR2LTRoNHY0aDR2LTRoMnptNiA5LjV2LTQuNTNsLTYtNS41LTYgNS41VjE1aDEydi00LjV6Ii8+PC9zdmc+'">
+        </div>
+        <button class="nav-btn" id="theme-btn" type="button" aria-label="Change theme">
+            <img src="assets/gear.png" alt="Theme settings">
+        </button>
+    </div>
+
+    <footer>
+        <div class="footer">
+            <span>brr_tech</span>
+        </div>
+    </footer>
+
+
+    <div id="main-menu" class="screen active">
+        <div class="left-panel">
+            <div class="menu-title">Block Types</div>
+            <div class="menu-btn-group">
+                <button class="main-menu-btn" onclick="openCategory('all')">
+                    <img src="assets/info_playerspawn.png" class="btn-icon" alt="">
+                    <span>All</span>
+                </button>
+
+                <button class="main-menu-btn" onclick="openCategory('tools')">
+                    <img src="assets/brr_trigger.png" class="btn-icon" alt="">
+                    <span>Tools</span>
+                </button>
+
+                <button class="main-menu-btn" onclick="openCategory('brushes')">
+                    <img src="assets/brr_playerClip.png" class="btn-icon" alt="">
+                    <span>Brushes</span>
+                </button>
+
+                <button class="main-menu-btn" onclick="openCategory('logic')">
+                    <img src="assets/game_nametag.png" class="btn-icon" alt="">
+                    <span>Logic</span>
+                </button>
+                <button class="main-menu-btn" onclick="openCategory('game')">
+                    <img src="assets/missing_texture.png" class="btn-icon" alt="">
+                    <span>Game</span>
+                </button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="menu-title" style="margin-top: 10px;">Having questions?</div>
+            <button class="main-menu-btn" onclick="navigateTo('howto-screen')">
+                <img src="assets/info_playerspawn_mini.png" class="btn-icon" alt="">
+                <span>Learn about it here!</span>
+                <img src="assets/info_target_areaportal_mini.png" class="btn-icon"
+                    style="width: auto; height: auto; object-fit: contain;" alt="">
+            </button>
+        </div>
+
+        <div class="right-column">
+            <div class="welcome-panel">
+                <h1 class="welcome-header">WELCOME</h1>
+                <p class="welcome-text">
+                    Access the database for Bonnie's Source Engine. <br><br>
+                    Select a category on the left to begin browsing block definitions, logic gates, and entity
+                    properties.
+                </p>
+            </div>
+
+            <div class="socials-panel">
+                <a href="https://discord.com/invite/N4mkDncC9q" target="_blank" class="social-link"
+                    title="Join my Discord server!">
+                    <img src="assets/discord.png"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzcyODlkYSI+PHBhdGggZD0iTTIwLjMxNyA0LjM3YTE5Ljc5MSAxOS43OTEgMCAwIDAtNC44ODUtMS41MTUuMDc0LjA3NCAwIDAgMC0uMDc5LjAzN2MtLjIxLjM3NS0uNDQ0Ljg2NC0uNjA4IDEuMjVhMTguMzExIDE4LjMxMSAwIDAgMC03LjM4NyAwYy0uMTctLjM4Ni0uNC0uODc1LS42MTUtMS4yNWEuMDc3LjA3NyAwIDAgMC0uMDc5LS4wMzdBMTkuNzM2IDE5LjczNiAwIDAgMCAzLjY3NyA0LjM3YS.MDcuMDcgMCAwIDAtLjAzMi4wMjdDLjUzMyA5LjA0Ni0uMzE5IDEzLjU3OS4wOTkgMTguMDU3YS.MDgyLjA4MiAwIDAgMC4wMzEuMDU3IDE5LjkgMTkuOSAwIDAgMCA2LjAwMiAzLjAzYS.MDc3LjA3NyAwIDAgMC4wODQtLjAyN2MuNDYyLS.NjMuODY3LTEuMjkxIDEuMjI2LTEuOTk0YS.MDc2LjA3NiAwIDAgMC0uMDQxLS4xMDZjLS.NjU2LS.MjQ4LTEuMjc0LS.NTQ5LTEuODcyLS.ODkyYS.MDc3LjA3NyAwIDAgMS0uMDA4LS4xMjdjLjEyNS0.MDk0LjI1MS0.MTkyLjM3Mi0.MjkxYS.MDc0LjA3NCAwIDAgMS4wNzctLjAxYzMuOTI3IDEuNzkzIDguMTggMS43OTMgMTIuMDY4IDBhLjA3NC4wNzQgMCAwIDEuMDc4LjAxYzEuMTIxLjA5OS4yNDcuMTk4LjM3NC4yOTJhLjA3Ny4wNzcgMCAwIDEtLjAwNi4xMjdjLS.NTk4LjM0My0xLjIyOC42NDQtMS44NzMuODkyYS.MDc2LjA3NiAwIDAgMC0uMDQxLjEwNmMuMzYuNzAzLjc2OSAxLjM2MiAxLjIyNSAxLjk5M2EuMDc2LjA3NiAwIDAgMC4wODQuMDI4IDE5Ljg5IDE5Ljg5IDAgMCAwIDYuMDAxLTMuMDNhLjA3Ny4wNzcgMCAwIDAuMDMyLS4wNTdjLjQ2MS01LjMwNC0uMzg3LTkuODY0LTMuNjE4LTE0LjY4M2EuMDc0LjA3NCAwIDAgMC0uMDMzLS4wMjdaIi8+PC9zdmc+'">
+                </a>
+                <a href="https://youtube.com/@bonnierobloxrip" target="_blank" class="social-link"
+                    title="Check out my YouTube channel!">
+                    <img src="assets/youtube.png"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmMDAwMCI+PHBhdGggZD0iTTIzLjQ5OCA2LjE4NmEzLjAxNiAzLjAxNiAwIDAgMC0yLjEyMi0yLjEzNkMxOS41MDUgMy41NDUgMTIgMy41NDUgMTIgMy41NDVzLTcuNTA1IDAtOS4zNzcuNTA1QTMuMDE3IDMuMDE3IDAgMCAwIC41MDIgNi4xODZDMCA4LjA3IDAgMTIgMCAxMnMwIDMuOTUtNTAyIDUuODE0YTMuMDE2IDMuMDE2IDAgMCAwIDIuMTIyIDIuMTM2YzEuODcxLjUwNSA5LjM3Ni41MDUgOS4zNzYuNTA1czcuNTA1IDAgOS4zNzctLjUwNWEzLjAxNSAzLjAxNSAwIDAgMCAyLjEyMi0yLjEzNkMyNCAxNS45MyAyNCAxMiAyNCAxMnMwLTMuOTMtLjUwMi01LjgxNHpNOS41NDUgMTUuNTY4VjguNDMyTDE1LjgxOCAxMmwtNi4yNzMgMy41Njh6Ii8+PC9zdmc+'">
+                </a>
+                <a href="https://paypal.com/paypalme/bonnierobloxrip" target="_blank" class="social-link"
+                    title="Want to donate? Visit my PayPal">
+                    <img src="assets/paypal.png"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmMDAwMCI+PHBhdGggZD0iTTIzLjQ5OCA2LjE4NmEzLjAxNiAzLjAxNiAwIDAgMC0yLjEyMi0yLjEzNkMxOS41MDUgMy41NDUgMTIgMy41NDUgMTIgMy41NDVzLTcuNTA1IDAtOS4zNzcuNTA1QTMuMDE3IDMuMDE3IDAgMCAwIC41MDIgNi4xODZDMCA4LjA3IDAgMTIgMCAxMnMwIDMuOTUtNTAyIDUuODE0YTMuMDE2IDMuMDE2IDAgMCAwIDIuMTIyIDIuMTM2YzEuODcxLjUwNSA5LjM3Ni41MDUgOS4zNzYuNTA1czcuNTA1IDAgOS4zNzctLjUwNWEzLjAxNSAzLjAxNSAwIDAgMCAyLjEyMi0yLjEzNkMyNCAxNS45MyAyNCAxMiAyNCAxMnMwLTMuOTMtLjUwMi01LjgxNHpNOS41NDUgMTUuNTY4VjguNDMyTDE1LjgxOCAxMmwtNi4yNzMgMy41Njh6Ii8+PC9zdmc+'">
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="tools-screen" class="screen">
+        <div class="screen-header-container with-nav-offset">
+
+            <div class="screen-title-group">
+                <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
+                <h3 style="margin: 0;" id="tools-subtitle">Tools & Blocks</h3>
+            </div>
+
+            <div class="screen-header-action">
+                <div class="toolbar-controls">
+                    <select id="catalogFilter" class="toolbar-select" aria-label="Filter block category">
+                        <option value="all">All Blocks</option>
+                        <option value="tools">Tools &amp; Blocks</option>
+                        <option value="brushes">Brushes &amp; Environment</option>
+                        <option value="logic">Logic Blocks</option>
+                        <option value="game">Game &amp; Mode Blocks</option>
+                    </select>
+                    <input type="text" id="searchInput" class="pixel-input tools-search"
+                        placeholder="Search blocks, categories, or keywords...">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="screen-content-scroll">
+            <div class="catalog-summary">
+                <span id="catalog-count">0 Blocks</span>
+                <span id="catalog-hint">Click any card to open full details</span>
+            </div>
+            <div class="block-grid" id="blockGrid">
+            </div>
+            <p id="catalog-empty" class="catalog-empty">No blocks match your current search.</p>
+        </div>
+    </div>
+
+
+    <div id="howto-screen" class="screen">
+        <div class="screen-header-container with-nav-offset">
+            <div class="screen-title-group">
+                <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
+                <h3 style="margin: 0;">How To Use</h3>
+            </div>
+        </div>
+
+        <div class="screen-content-scroll">
+            <div class="howto-box" style="margin-top: 0;">
+                <h1 style="color: var(--highlight); font-size: 3rem; margin-top: 0;">What is this Mod?</h1>
+                <p>Bonnie's Source Engine adds tool blocks, logic blocks, game blocks, and utility blocks for map
+                    creators in Minecraft Bedrock. This encyclopedia mirrors your in-game block workflow in one place.
+                </p>
+                <h2>Core UI Flow</h2>
+                <p>Every block follows a 4-part editing pattern: <strong>Class Info</strong>, <strong>Outputs</strong>,
+                    <strong>Existing Outputs</strong>, and <strong>Inputs</strong>. Name + Start Disabled are global
+                    fields used by all block types.
+                </p>
+                <h2>Quick Tips</h2>
+                <p>Use search to find blocks quickly, open any card for field-level details, and check output/input
+                    tabs when wiring larger systems. Conditions and examples in this app are based on your draft docs.
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="placeholder-screen" class="screen">
+        <div class="screen-header-container with-nav-offset">
+            <div class="screen-title-group">
+                <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
+                <h3 style="margin: 0;" id="placeholder-title">Page Title</h3>
+            </div>
+            <div class="screen-header-action">
+                <input type="text" class="pixel-input" placeholder="Search..."
+                    style="padding: 5px 10px;">
+            </div>
+        </div>
+
+        <div class="screen-content-scroll">
+            <div class="block-grid">
+                <p style="text-align:center; width: 100%; color: #555;">No items loaded.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="detail-screen" class="screen">
+        <div class="screen-header-container with-nav-offset">
+            <div class="screen-title-group">
+                <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
+                <h3 style="margin: 0;" id="detail-header-title">Tool Name</h3>
+            </div>
+            <div class="screen-header-action">
+                <button class="pixel-btn" onclick="navigateTo('tools-screen')"
+                    style="background: #a00; color: #fff; border-color: #500;">Back</button>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="info" onclick="switchTab('info')">Class Info</button>
+            <button class="tab-btn" data-tab="outputs" onclick="switchTab('outputs')">Outputs</button>
+            <button class="tab-btn" data-tab="existing" onclick="switchTab('existing')">Existing Outputs</button>
+            <button class="tab-btn" data-tab="inputs" onclick="switchTab('inputs')">Inputs</button>
+        </div>
+
+        <div class="screen-content-scroll" style="background: var(--tab-strip-bg); padding: 0;">
+            <div class="detail-body">
+
+                <div id="tab-info" class="tab-content">
+                    <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Class
+                        Information
+                    </h2>
+                    <div id="detail-info-content">
+                    </div>
+                </div>
+
+                <div id="tab-outputs" class="tab-content" style="display: none;">
+                    <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Outputs</h2>
+                    <div id="detail-outputs-content"></div>
+                </div>
+
+                <div id="tab-existing" class="tab-content" style="display: none;">
+                    <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Existing
+                        Outputs</h2>
+                    <div id="detail-existing-content"></div>
+                </div>
+
+                <div id="tab-inputs" class="tab-content" style="display: none;">
+                    <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Inputs</h2>
+                    <div id="detail-inputs-content"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="catalog-data.js"></script>
+    <script src="renderer.js"></script>
+</body>
+
+</html>
