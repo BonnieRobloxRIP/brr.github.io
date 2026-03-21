@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: https:;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; script-src-elem 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: https:; connect-src 'self' https://cloudflareinsights.com https://*.cloudflareinsights.com;">
     <link rel="preload" href="assets/home.png" as="image">
     <link rel="preload" href="assets/power_button.png" as="image">
     <link rel="preload" href="assets/brr_trigger.png" as="image">
@@ -508,11 +508,11 @@
         body.app-booting .footer,
         body.app-booting #version-tag,
         body.app-booting .scanlines,
-        body.app-booting #flicker-overlay,
         body.app-booting #glitch-clone {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+            transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
         }
 
         body.app-ready .screen,
@@ -520,10 +520,21 @@
         body.app-ready .footer,
         body.app-ready #version-tag,
         body.app-ready .scanlines,
-        body.app-ready #flicker-overlay,
         body.app-ready #glitch-clone {
             opacity: 1;
             visibility: visible;
+        }
+
+        body.app-booting #flicker-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.app-ready #flicker-overlay {
+            opacity: 0;
+            visibility: visible;
+            pointer-events: none;
         }
 
         #boot-overlay {
