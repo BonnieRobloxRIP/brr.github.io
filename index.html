@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: https:;">
-    <link rel="preload" href="assets/minecraft_font.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="assets/home.png" as="image">
     <link rel="preload" href="assets/power_button.png" as="image">
     <link rel="preload" href="assets/brr_trigger.png" as="image">
@@ -19,21 +18,213 @@
         }
 
         :root {
-            --bg-main: #3d3d3d;
-            --bg-card: #2c2c2c;
-            --bg-modal: #1e1e1e;
-            --text-main: #ffffff;
-            --text-dim: #aaaaaa;
-            --border-light: #555555;
-            --border-dark: #000000;
-            --highlight: #e67e22;
-            --highlight-hover: #d35400;
-            --input-bg: #111;
-            --danger: #c0392b;
+            --bg-main: #141414;
+            --bg-card: #1f1f1f;
+            --bg-modal: #121212;
+            --text-main: #f4f4f4;
+            --text-dim: #bcbcbc;
+            --text-muted: #8d8d8d;
+            --header-text: #efefef;
+            --border-light: #787878;
+            --border-dark: #060606;
+            --highlight: #f2f2f2;
+            --highlight-hover: #ffffff;
+            --input-bg: #0d0d0d;
+            --danger: #b44545;
             --panel-tint: rgba(0, 0, 0, 0.28);
             --nav-btn-size: 32px;
             --nav-edge-offset: 4px;
             --header-nav-offset: calc(var(--nav-btn-size) + var(--nav-edge-offset) + 16px);
+            --page-gradient-a: rgba(12, 12, 12, 0.92);
+            --page-gradient-b: rgba(28, 28, 28, 0.96);
+            --page-glow-a: rgba(255, 255, 255, 0.06);
+            --page-glow-b: rgba(255, 255, 255, 0.03);
+            --header-bg-start: #232323;
+            --header-bg-end: #161616;
+            --header-accent: var(--highlight);
+            --panel-bg: rgba(15, 15, 15, 0.88);
+            --panel-bg-soft: rgba(24, 24, 24, 0.88);
+            --panel-bg-strong: rgba(10, 10, 10, 0.94);
+            --card-glow: rgba(255, 255, 255, 0.04);
+            --tab-strip-bg: #242424;
+            --tab-btn-bg: #343434;
+            --tab-btn-text: #dfdfdf;
+            --tab-panel-border: #4f4f4f;
+            --filter-bg: #101010;
+            --filter-text: var(--text-main);
+            --filter-border: var(--border-light);
+            --scroll-track: #090909;
+            --scroll-thumb: #7f7f7f;
+            --scroll-thumb-edge: #d6d6d6;
+            --footer-bg: rgba(0, 0, 0, 0.86);
+            --footer-text: #7c7c7c;
+            --rare-overlay-a: rgba(255, 80, 42, 0.24);
+            --rare-overlay-b: rgba(0, 0, 0, 0.96);
+            --rare-solid-bg: #070707;
+            --rare-title-color: #ff5f5f;
+            --rare-text-color: #ffffff;
+            --rare-subtext-color: rgba(255, 255, 255, 0.86);
+            --rare-shift-x: 0px;
+            --rare-shift-y: 0px;
+            --rare-hue-shift: 0deg;
+        }
+
+        body[data-theme='dark'] {
+            --bg-main: #141414;
+            --bg-card: #1f1f1f;
+            --bg-modal: #121212;
+            --text-main: #f4f4f4;
+            --text-dim: #bcbcbc;
+            --text-muted: #8d8d8d;
+            --header-text: #efefef;
+            --border-light: #787878;
+            --border-dark: #060606;
+            --highlight: #f2f2f2;
+            --highlight-hover: #ffffff;
+            --input-bg: #0d0d0d;
+            --page-gradient-a: rgba(12, 12, 12, 0.92);
+            --page-gradient-b: rgba(28, 28, 28, 0.96);
+            --page-glow-a: rgba(255, 255, 255, 0.06);
+            --page-glow-b: rgba(255, 255, 255, 0.03);
+            --header-bg-start: #232323;
+            --header-bg-end: #161616;
+            --panel-bg: rgba(15, 15, 15, 0.88);
+            --panel-bg-soft: rgba(24, 24, 24, 0.88);
+            --panel-bg-strong: rgba(10, 10, 10, 0.94);
+            --tab-strip-bg: #242424;
+            --tab-btn-bg: #343434;
+            --tab-btn-text: #dfdfdf;
+            --tab-panel-border: #4f4f4f;
+            --filter-bg: #101010;
+            --scroll-track: #090909;
+            --scroll-thumb: #7f7f7f;
+            --scroll-thumb-edge: #d6d6d6;
+            --footer-bg: rgba(0, 0, 0, 0.86);
+            --footer-text: #7c7c7c;
+        }
+
+        body[data-theme='light'] {
+            --bg-main: #e8e8e8;
+            --bg-card: #f5f5f5;
+            --bg-modal: #efefef;
+            --text-main: #1a1a1a;
+            --text-dim: #4a4a4a;
+            --text-muted: #6a6a6a;
+            --header-text: #1c1c1c;
+            --border-light: #f0f0f0;
+            --border-dark: #7a7a7a;
+            --highlight: #222222;
+            --highlight-hover: #1a1a1a;
+            --input-bg: #f0f0f0;
+            --page-gradient-a: rgba(250, 250, 250, 0.96);
+            --page-gradient-b: rgba(218, 218, 218, 0.96);
+            --page-glow-a: rgba(0, 0, 0, 0.04);
+            --page-glow-b: rgba(0, 0, 0, 0.03);
+            --header-bg-start: #f6f6f6;
+            --header-bg-end: #d9d9d9;
+            --panel-bg: rgba(255, 255, 255, 0.94);
+            --panel-bg-soft: rgba(244, 244, 244, 0.94);
+            --panel-bg-strong: rgba(235, 235, 235, 0.98);
+            --tab-strip-bg: #d9d9d9;
+            --tab-btn-bg: #b6b6b6;
+            --tab-btn-text: #202020;
+            --tab-panel-border: #bdbdbd;
+            --filter-bg: #ffffff;
+            --filter-text: #161616;
+            --filter-border: #888888;
+            --scroll-track: #d5d5d5;
+            --scroll-thumb: #9f9f9f;
+            --scroll-thumb-edge: #ffffff;
+            --footer-bg: rgba(232, 232, 232, 0.94);
+            --footer-text: #4e4e4e;
+            --rare-overlay-a: rgba(255, 255, 255, 0.2);
+            --rare-overlay-b: rgba(30, 30, 30, 0.96);
+            --rare-solid-bg: #1b1b1b;
+            --rare-title-color: #ff7878;
+            --rare-text-color: #ffffff;
+            --rare-subtext-color: rgba(255, 255, 255, 0.9);
+        }
+
+        body[data-theme='blackmesa'] {
+            --bg-main: #14100e;
+            --bg-card: #1f1a17;
+            --bg-modal: #14100e;
+            --text-main: #f2efe9;
+            --text-dim: #c9b8a6;
+            --text-muted: #9e8b76;
+            --header-text: #f4efe7;
+            --border-light: #f0811a;
+            --border-dark: #0c0705;
+            --highlight: #f5811f;
+            --highlight-hover: #ffb347;
+            --input-bg: rgba(9, 18, 37, 0.22);
+            --page-gradient-a: rgba(20, 14, 10, 0.94);
+            --page-gradient-b: rgba(7, 7, 7, 0.97);
+            --page-glow-a: rgba(245, 129, 31, 0.16);
+            --page-glow-b: rgba(255, 179, 71, 0.05);
+            --header-bg-start: #2d2825;
+            --header-bg-end: #191412;
+            --panel-bg: rgba(22, 18, 16, 0.9);
+            --panel-bg-soft: rgba(32, 26, 23, 0.92);
+            --panel-bg-strong: rgba(18, 14, 12, 0.96);
+            --tab-strip-bg: #211b17;
+            --tab-btn-bg: #2d2621;
+            --tab-btn-text: #f1e2d1;
+            --tab-panel-border: #f0811a;
+            --filter-bg: rgba(18, 14, 12, 0.94);
+            --filter-text: #f7f0e6;
+            --filter-border: #f0811a;
+            --scroll-track: #1a120d;
+            --scroll-thumb: #f0811a;
+            --scroll-thumb-edge: #ffd08b;
+            --footer-bg: rgba(14, 10, 8, 0.92);
+            --footer-text: #c48249;
+            --rare-solid-bg: #0f0a08;
+            --rare-title-color: #ffb15a;
+            --rare-text-color: #ffe6c7;
+            --rare-subtext-color: rgba(255, 224, 188, 0.88);
+        }
+
+        body[data-theme='xen'] {
+            --bg-main: #0a1023;
+            --bg-card: #121b36;
+            --bg-modal: #0b1328;
+            --text-main: #eef3ff;
+            --text-dim: #bfd0ff;
+            --text-muted: #8fa0d6;
+            --header-text: #eff5ff;
+            --border-light: #6d7dff;
+            --border-dark: #040817;
+            --highlight: #73e0ff;
+            --highlight-hover: #c1a2ff;
+            --input-bg: #0d1630;
+            --page-gradient-a: rgba(11, 13, 48, 0.95);
+            --page-gradient-b: rgba(5, 21, 63, 0.97);
+            --page-glow-a: rgba(132, 97, 255, 0.24);
+            --page-glow-b: rgba(81, 214, 255, 0.12);
+            --header-bg-start: #171f43;
+            --header-bg-end: #0d1430;
+            --panel-bg: rgba(10, 17, 42, 0.9);
+            --panel-bg-soft: rgba(16, 24, 58, 0.92);
+            --panel-bg-strong: rgba(8, 13, 34, 0.97);
+            --tab-strip-bg: #141b3c;
+            --tab-btn-bg: #24306a;
+            --tab-btn-text: #e6eeff;
+            --tab-panel-border: #5467df;
+            --filter-bg: rgba(10, 17, 42, 0.96);
+            --filter-text: #eef3ff;
+            --filter-border: #5668ef;
+            --scroll-track: #0b1330;
+            --scroll-thumb: #576ded;
+            --scroll-thumb-edge: #b7c4ff;
+            --footer-bg: rgba(7, 10, 29, 0.9);
+            --footer-text: #94a7df;
+            --rare-overlay-a: rgba(50, 223, 255, 0.22);
+            --rare-overlay-b: rgba(1, 5, 22, 0.97);
+            --rare-solid-bg: #010616;
+            --rare-title-color: #8be6ff;
+            --rare-text-color: #eef3ff;
+            --rare-subtext-color: rgba(216, 227, 255, 0.9);
         }
 
         * {
@@ -50,15 +241,16 @@
             margin: 0;
             padding: 0;
             background:
-                radial-gradient(circle at 18% 12%, rgba(230, 126, 34, 0.1), transparent 42%),
-                radial-gradient(circle at 84% 78%, rgba(255, 255, 255, 0.05), transparent 36%),
-                #191919;
+                radial-gradient(circle at 18% 12%, var(--page-glow-a), transparent 42%),
+                radial-gradient(circle at 84% 78%, var(--page-glow-b), transparent 36%),
+                linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
             font-family: 'Minecraft', monospace;
             overflow: hidden;
             color: var(--text-main);
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
             overscroll-behavior: none;
+            transition: background 0.2s ease-out, color 0.2s ease-out;
         }
 
         body::before {
@@ -68,6 +260,29 @@
             pointer-events: none;
             z-index: -2;
             background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+        }
+
+        body[data-theme='xen']::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 18% 12%, rgba(132, 97, 255, 0.4), transparent 42%),
+                radial-gradient(circle at 84% 78%, rgba(81, 214, 255, 0.35), transparent 36%),
+                radial-gradient(circle at 5% 82%, rgba(115, 224, 255, 0.3), transparent 40%),
+                radial-gradient(circle at 92% 22%, rgba(201, 162, 255, 0.25), transparent 38%),
+                radial-gradient(circle, rgba(200, 200, 255, 0.65) 0 0.8px, transparent 1.2px),
+                radial-gradient(circle, rgba(220, 220, 255, 0.5) 0 1px, transparent 1.5px),
+                radial-gradient(circle, rgba(180, 200, 255, 0.6) 0 0.6px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 90px 90px, 140px 140px, 110px 110px;
+            background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 30px 50px, 20px 30px;
+            background-attachment: fixed;
+            opacity: 1;
+            animation: xenTwinkle1 6s ease-in-out infinite 0s,
+                        xenTwinkle2 7s ease-in-out infinite 1s,
+                        xenTwinkle3 8s ease-in-out infinite 2s;
         }
 
         #bg-canvas {
@@ -83,19 +298,19 @@
         /* --- SCROLLBAR */
         ::-webkit-scrollbar {
             width: 12px;
-            background: #1a1a1a;
+            background: var(--scroll-track);
         }
 
         ::-webkit-scrollbar-thumb {
-            background-color: #c6c6c6;
-            border: 2px solid #ffffff;
-            border-right-color: #555555;
-            border-bottom-color: #555555;
+            background-color: var(--scroll-thumb);
+            border: 2px solid var(--scroll-thumb-edge);
+            border-right-color: var(--border-light);
+            border-bottom-color: var(--border-light);
         }
 
         ::-webkit-scrollbar-track {
-            background: #000;
-            border-left: 2px solid #333;
+            background: var(--scroll-track);
+            border-left: 2px solid var(--border-dark);
         }
 
         /* --- GLOBAL UI */
@@ -107,11 +322,11 @@
             color: var(--highlight);
             font-family: 'Minecraft', monospace;
             font-size: 1.2rem;
-            text-shadow: 2px 2px 0 #000;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
             z-index: 9500;
             padding: 5px 10px;
-            pointer-events: auto;
-            cursor: pointer;
+            pointer-events: none;
+            cursor: default;
         }
 
         #global-nav {
@@ -148,6 +363,13 @@
             box-shadow: 1px 1px 0 #000;
         }
 
+        #theme-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
         #power-btn {
             background: #300;
         }
@@ -156,13 +378,37 @@
             background: #500;
         }
 
+        #home-btn, #theme-btn {
+            background: var(--button-bg, var(--bg-card));
+        }
+
+        body[data-theme='dark'] #home-btn,
+        body[data-theme='dark'] #theme-btn {
+            background: var(--input-bg);
+        }
+
+        body[data-theme='light'] #home-btn,
+        body[data-theme='light'] #theme-btn {
+            background: #666666;
+        }
+
+        body[data-theme='blackmesa'] #home-btn,
+        body[data-theme='blackmesa'] #theme-btn {
+            background: #2d2621;
+        }
+
+        body[data-theme='xen'] #home-btn,
+        body[data-theme='xen'] #theme-btn {
+            background: #1a2952;
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: #000;
-            color: #555;
+            background: var(--footer-bg);
+            color: var(--footer-text);
             padding: 5px;
             font-size: 0.8rem;
             border-top: 2px solid var(--border-dark);
@@ -173,16 +419,11 @@
             user-select: none;
         }
 
-        .footer_trigger {
-            color: var(--highlight);
-            cursor: pointer;
-        }
-
         .screen-header-container {
             flex-shrink: 0;
             /* Don't shrink */
-            background: linear-gradient(180deg, #d0d0d0 0%, #b7b7b7 100%);
-            color: #404040;
+            background: linear-gradient(180deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+            color: var(--header-text);
             padding: 15px 20px;
             border-bottom: 4px solid var(--border-dark);
             z-index: 50;
@@ -212,9 +453,25 @@
             margin-right: 20px;
         }
 
+        .toolbar-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-select {
+            min-width: 168px;
+            background: var(--filter-bg);
+            color: var(--filter-text);
+            border: 2px solid var(--filter-border);
+            font-family: inherit;
+            padding: 8px 10px;
+        }
+
         .tools-search {
-            background: #fff;
-            color: #000;
+            background: var(--filter-bg);
+            color: var(--filter-text);
             padding: 5px 10px;
         }
 
@@ -267,7 +524,6 @@
         body.app-ready #glitch-clone {
             opacity: 1;
             visibility: visible;
-            transition: opacity 0.2s ease-out;
         }
 
         #boot-overlay {
@@ -280,7 +536,7 @@
             justify-content: center;
             gap: 10px;
             text-align: center;
-            background: radial-gradient(circle at 50% 30%, rgba(230, 126, 34, 0.14), rgba(0, 0, 0, 0) 40%), #121212;
+            background: #090909;
             color: #e3e3e3;
             transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
         }
@@ -296,7 +552,7 @@
         .boot-title {
             color: var(--highlight);
             font-size: 1.25rem;
-            text-shadow: 2px 2px 0 #000;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
             max-width: min(90vw, 640px);
         }
 
@@ -320,8 +576,8 @@
             min-height: 100vh;
             padding: 20px;
             gap: 20px;
-            overflow: hidden;
-            background: linear-gradient(180deg, rgba(18, 18, 18, 0.84), rgba(32, 32, 32, 0.84));
+            overflow-y: auto;
+            background: linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
             /* Dark semi-transparent */
             backdrop-filter: blur(5px);
         }
@@ -335,13 +591,15 @@
         .left-panel {
             flex: 1;
             /* Left half */
-            background: linear-gradient(180deg, #323232 0%, #252525 100%);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%);
             border: 4px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             display: flex;
             flex-direction: column;
             padding: 20px;
             box-shadow: 5px 5px 0 #000;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
         }
 
         /* Right Column Container */
@@ -356,7 +614,7 @@
         .welcome-panel {
             flex: 3;
             /* 3/4 height of right column */
-            background: linear-gradient(180deg, #343434 0%, #262626 100%);
+            background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
             border: 4px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             padding: 30px;
@@ -369,7 +627,7 @@
         .socials-panel {
             flex: 1;
             /* 1/4 height of right column */
-            background: linear-gradient(180deg, #303030 0%, #242424 100%);
+            background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
             border: 4px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             padding: 15px;
@@ -386,7 +644,7 @@
             text-decoration: underline;
             text-underline-offset: 8px;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 0 #000;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
         }
 
         .menu-btn-group {
@@ -399,7 +657,7 @@
         .main-menu-btn {
             background: var(--input-bg);
             border: 2px solid var(--border-light);
-            color: white;
+            color: var(--text-main);
             padding: 15px;
             font-family: 'Minecraft';
             font-size: 1.2rem;
@@ -428,7 +686,7 @@
 
         .main-menu-btn:hover {
             background: var(--highlight);
-            color: #000;
+            color: var(--bg-main);
             transform: translateX(5px);
         }
 
@@ -447,14 +705,14 @@
         .welcome-header {
             font-size: 4rem;
             color: var(--highlight);
-            text-shadow: 4px 4px 0 #000;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
             margin: 0 0 20px 0;
         }
 
         .welcome-text {
             font-size: 1.2rem;
             line-height: 1.5;
-            color: #ddd;
+            color: var(--text-dim);
         }
 
         .social-link {
@@ -495,7 +753,7 @@
         }
 
         .howto-box {
-            background: rgba(0, 0, 0, 0.8);
+            background: var(--panel-bg-strong);
             border: 4px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             padding: 40px;
@@ -510,7 +768,7 @@
 
         .howto-box p {
             line-height: 1.6;
-            color: #ccc;
+            color: var(--text-dim);
         }
 
         .block-grid {
@@ -543,8 +801,8 @@
 
         .block-card:hover {
             transform: translateY(-2px);
-            background: #343434;
-            border-color: #7d7d7d var(--border-dark) var(--border-dark) #7d7d7d;
+            background: color-mix(in srgb, var(--bg-card) 84%, var(--highlight) 16%);
+            border-color: var(--highlight) var(--border-dark) var(--border-dark) var(--highlight);
             z-index: 10;
         }
 
@@ -578,7 +836,7 @@
 
         .card-category {
             font-size: 0.68rem;
-            color: #ffc792;
+            color: var(--highlight);
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
@@ -586,13 +844,13 @@
         .card-title {
             font-size: 0.95rem;
             color: var(--highlight);
-            text-shadow: 2px 2px 0 #000;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
             line-height: 1.25;
             min-height: 2.4em;
         }
 
         .card-summary {
-            color: #d2d2d2;
+            color: var(--text-dim);
             font-size: 0.72rem;
             line-height: 1.35;
             opacity: 0.9;
@@ -606,9 +864,9 @@
             gap: 15px;
             margin-bottom: 14px;
             padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #181818;
-            color: #d9d9d9;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-dark);
+            color: var(--text-dim);
             text-transform: uppercase;
             font-size: 0.74rem;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
@@ -616,7 +874,7 @@
 
         .catalog-empty {
             text-align: center;
-            color: #bbb;
+            color: var(--text-dim);
             margin: 30px 0;
             display: none;
             font-size: 0.92rem;
@@ -656,7 +914,7 @@
         .modal-header {
             padding: 10px 15px;
             background: var(--highlight);
-            color: white;
+            color: var(--bg-main);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -707,10 +965,10 @@
         }
 
         .detail-chip {
-            background: #1a1a1a;
-            border: 2px solid #101010;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-dark);
             padding: 4px 8px;
-            color: #d7d7d7;
+            color: var(--text-dim);
             font-size: 0.75rem;
             text-transform: uppercase;
         }
@@ -718,7 +976,7 @@
         .detail-list {
             margin: 0;
             padding-left: 20px;
-            color: #d3d3d3;
+            color: var(--text-dim);
             line-height: 1.55;
         }
 
@@ -727,7 +985,7 @@
         }
 
         .detail-muted {
-            color: #b8b8b8;
+            color: var(--text-dim);
             font-size: 0.84rem;
             line-height: 1.5;
         }
@@ -806,14 +1064,14 @@
             gap: 5px;
             margin-bottom: 0;
             padding-left: 20px;
-            background: #c6c6c6;
+            background: var(--tab-strip-bg);
             padding-top: 10px;
         }
 
         .tab-btn {
-            background: #8b8b8b;
-            color: #ddd;
-            border: 2px solid #555;
+            background: var(--tab-btn-bg);
+            color: var(--tab-btn-text);
+            border: 2px solid var(--border-light);
             border-bottom: none;
             padding: 10px 20px;
             cursor: pointer;
@@ -832,34 +1090,14 @@
 
         .detail-body {
             background: var(--bg-card);
-            border: 4px solid #c6c6c6;
+            border: 4px solid var(--tab-panel-border);
             padding: 20px;
             min-height: 500px;
             margin: 0 20px 20px 20px;
         }
 
-        /* --- STARTUP VIDEO */
-        #startup-screen {
-            display: none;
-        }
-
-        #startup-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 10000;
-            /* Topmost */
-            background: black;
-            display: none;
-            /* Controlled by JS */
-        }
-
         /* --- VISUAL EFFECTS */
         html {
-            filter: grayscale(100%) contrast(1.2) brightness(0.9);
             height: 100%;
         }
 
@@ -886,6 +1124,23 @@
             100% {
                 background-position: 0 4px;
             }
+        }
+
+        @keyframes xenTwinkle1 {
+            0%, 10%, 20%, 100% { opacity: 0.65; }
+            5%, 15% { opacity: 0.15; }
+        }
+
+        @keyframes xenTwinkle2 {
+            0%, 100% { opacity: 0.5; }
+            25%, 35% { opacity: 0.08; }
+            30% { opacity: 0.4; }
+        }
+
+        @keyframes xenTwinkle3 {
+            0%, 100% { opacity: 0.6; }
+            40%, 55% { opacity: 0.1; }
+            45% { opacity: 0.55; }
         }
 
         .screen,
@@ -940,31 +1195,194 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #000;
+            background-color: var(--rare-solid-bg);
+            background-image: radial-gradient(circle at 50% 44%, var(--rare-overlay-a), transparent 42%);
             z-index: 10010;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            overflow: hidden;
+            filter: hue-rotate(var(--rare-hue-shift));
+            pointer-events: auto;
+        }
+
+        #rare-screen::before,
+        #rare-screen::after {
+            content: '';
+            position: absolute;
+            inset: -4%;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0px, rgba(0, 0, 0, 0.16) 3px, rgba(255, 255, 255, 0.03) 3px, rgba(255, 255, 255, 0.03) 6px);
+            mix-blend-mode: normal;
+        }
+
+        #rare-screen::before {
+            transform: translateX(calc(var(--rare-shift-x) * -0.6));
+            opacity: 0.28;
+            filter: saturate(2);
+        }
+
+        #rare-screen::after {
+            transform: translateX(calc(var(--rare-shift-x) * 0.6));
+            opacity: 0.22;
+            filter: hue-rotate(42deg);
         }
 
         #rare-screen.active {
             display: flex;
+            animation: none;
+        }
+
+        #rare-screen[data-rarity='common'] .rare-logo {
+            animation-duration: 0.28s;
+        }
+
+        #rare-screen[data-rarity='uncommon'] .rare-logo {
+            transform: scale(1.04);
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.14));
+        }
+
+        #rare-screen[data-rarity='rare'] .rare-logo,
+        #rare-screen[data-rarity='legendary'] .rare-logo {
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.22));
+        }
+
+        #rare-screen.critical {
+            box-shadow: inset 0 0 0 3px rgba(255, 86, 86, 0.22), inset 0 0 80px rgba(255, 86, 86, 0.08);
         }
 
         .rare-logo {
             width: 200px;
             image-rendering: pixelated;
             margin-bottom: 20px;
-            animation: glitch-skew 0.1s infinite;
+            animation: rareLogoWarp 0.22s steps(2) infinite;
+            position: relative;
+            z-index: 2;
         }
 
         .rare-text {
             font-family: 'Minecraft', monospace;
-            color: #fff;
+            color: var(--rare-text-color);
             font-size: 2rem;
             text-transform: uppercase;
             animation: blink 0.5s step-end infinite;
+            text-shadow:
+                calc(var(--rare-shift-x) * -0.25) 0 rgba(255, 0, 0, 0.8),
+                calc(var(--rare-shift-x) * 0.25) 0 rgba(255, 255, 0, 0.8),
+                0 0 12px rgba(255, 255, 255, 0.25);
+            position: relative;
+            z-index: 2;
+        }
+
+        .rare-title {
+            font-family: 'Minecraft', monospace;
+            color: var(--rare-title-color);
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+            text-transform: uppercase;
+        }
+
+        .rare-subtext {
+            font-family: 'Minecraft', monospace;
+            color: var(--rare-subtext-color);
+            font-size: 0.92rem;
+            margin-top: 10px;
+            max-width: min(86vw, 620px);
+            line-height: 1.45;
+            position: relative;
+            z-index: 2;
+        }
+
+        .rare-code {
+            display: none;
+            margin-top: 18px;
+            width: min(84vw, 760px);
+            min-height: 132px;
+            max-height: 180px;
+            overflow: hidden;
+            padding: 12px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.42);
+            color: rgba(255, 255, 255, 0.92);
+            text-align: left;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            font-size: 0.74rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+        }
+
+        .rare-code.active {
+            display: block;
+        }
+
+        .rare-code.crash-mode {
+            border-color: rgba(255, 86, 86, 0.5);
+            background: rgba(24, 0, 0, 0.55);
+            color: #ffd4d4;
+            box-shadow: 0 0 20px rgba(255, 86, 86, 0.18);
+        }
+
+        .rare-side-glitch {
+            position: absolute;
+            top: 8%;
+            bottom: 8%;
+            width: 40px;
+            display: none;
+            pointer-events: none;
+            opacity: 0;
+            background:
+                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0 10px, transparent 10px 22px),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+            image-rendering: pixelated;
+            mix-blend-mode: screen;
+        }
+
+        .rare-side-glitch.left {
+            left: 18px;
+        }
+
+        .rare-side-glitch.right {
+            right: 18px;
+        }
+
+        #rare-screen[data-rarity='rare'] .rare-side-glitch,
+        #rare-screen[data-rarity='legendary'] .rare-side-glitch {
+            display: block;
+            animation: rareSideGlitch 0.18s steps(2) infinite;
+        }
+
+        #rare-screen[data-rarity='legendary'] .rare-side-glitch {
+            width: 54px;
+            opacity: 0.95;
+            animation-duration: 0.12s;
+        }
+
+        #rare-screen[data-variant='blackout-cascade'] {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), inset 0 0 72px rgba(0, 0, 0, 0.28);
+        }
+
+        #rare-screen[data-variant='archive-ghost'] .rare-logo {
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(200, 220, 255, 0.22));
+        }
+
+        #rare-screen[data-variant='sector-lockdown'] {
+            box-shadow: inset 0 0 0 2px rgba(245, 129, 31, 0.18), inset 0 0 72px rgba(245, 129, 31, 0.08);
+        }
+
+        #rare-screen[data-variant='resonance-bloom'] .rare-text {
+            text-shadow:
+                calc(var(--rare-shift-x) * -0.25) 0 rgba(115, 224, 255, 0.86),
+                calc(var(--rare-shift-x) * 0.25) 0 rgba(193, 162, 255, 0.82),
+                0 0 18px rgba(255, 255, 255, 0.28);
         }
 
         @keyframes blink {
@@ -973,120 +1391,150 @@
             }
         }
 
-        @keyframes fovZoomOut {
+        @keyframes rareLogoWarp {
             0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(0.7);
-            }
-        }
-
-        .tunnel-effect {
-            /* Start normal */
-            transform-origin: center center;
-            transition: transform 0.1s linear;
-            /* Smooth updates if manual, or use animation */
-            animation: tunnelVision 6s ease-in forwards;
-        }
-
-        @keyframes tunnelVision {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-
-                transform: scale(1.8) perspective(200px) rotateX(5deg);
-            }
-        }
-
-        .black-bar {
-            position: fixed;
-            background: black;
-            z-index: 10005;
-        }
-
-        .rare-zoom-effect {
-            transform-origin: center;
-            animation: fovZoomOut 4s linear forwards;
-            /* Slow zoom */
-            overflow: hidden;
-        }
-
-        .rare-rgb-split {
-            animation: rgbSplit 0.1s infinite;
-        }
-
-        @keyframes rgbSplit {
-            0% {
-                text-shadow: -2px 0 red, 2px 0 blue;
-                transform: scale(1.0);
-            }
-
-            25% {
-                text-shadow: 2px 0 red, -2px 0 blue;
-                transform: scale(0.98);
+                transform: translateX(-2px) skewX(-4deg);
             }
 
             50% {
-                text-shadow: -2px 0 red, 2px 0 blue;
-                transform: scale(0.95);
+                transform: translateX(2px) skewX(4deg);
+            }
+            100% {
+                transform: translateX(-2px) skewX(-4deg);
+            }
+        }
+
+        @keyframes rareSideGlitch {
+            0% {
+                opacity: 0.22;
+                transform: translateX(0);
+                clip-path: inset(0 0 68% 0);
+            }
+
+            25% {
+                opacity: 0.75;
+                transform: translateX(3px);
+                clip-path: inset(12% 0 38% 0);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: translateX(-2px);
+                clip-path: inset(40% 0 18% 0);
             }
 
             75% {
-                text-shadow: 2px 0 red, -2px 0 blue;
-                transform: scale(0.92);
+                opacity: 0.82;
+                transform: translateX(4px);
+                clip-path: inset(64% 0 4% 0);
             }
 
             100% {
-                text-shadow: -2px 0 red, 2px 0 blue;
-                transform: scale(0.9);
+                opacity: 0.18;
+                transform: translateX(0);
+                clip-path: inset(0 0 72% 0);
             }
-
-            /* Ends zoomed out */
         }
 
-        .rare-active-effect {
-            /* Applies to body to shake/zoom the whole app */
-            animation: rgbSplit 0.2s infinite;
-            overflow: hidden;
+        body.rare-distorting .screen,
+        body.rare-distorting #global-nav,
+        body.rare-distorting .footer,
+        body.rare-distorting #version-tag {
+            transform: perspective(80px) translateZ(-26px) scale(1.2) translate3d(var(--rare-shift-x), var(--rare-shift-y), 0);
+            transform-origin: center center;
+            filter: hue-rotate(var(--rare-hue-shift)) saturate(1.2);
+            transition: transform 0.08s linear, filter 0.08s linear;
+            pointer-events: none;
         }
 
-        .black-bar {
+        .theme-picker-overlay {
             position: fixed;
-            background: black;
-            z-index: 10001;
-            /* Above rare screen content */
+            inset: 0;
+            z-index: 10020;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 35%, rgba(255, 178, 105, 0.12), rgba(0, 0, 0, 0.92));
+            padding: 18px;
+            pointer-events: none;
         }
 
-        body.egg-active .screen-header-container,
-        body.egg-active {
-            background-color: #e67e22 !important;
-            /* Orange */
-            color: #fff !important;
-            border-color: #d35400;
+        .theme-picker-overlay.active {
+            display: flex;
+            pointer-events: auto;
         }
 
-        body.egg-active .main-menu-btn,
-        body.egg-active .nav-btn,
-        body.egg-active .pixel-btn,
-        body.egg-active .tab-btn {
-            background-color: #2d2d2d;
-            color: #b64901;
-            border-style: solid;
-            border-width: 4px;
-            /* TOP | RIGHT | BOTTOM | LEFT */
-            border-color: #2d2d2d #b64901 #b64901 #2d2d2d;
-            transition: box-shadow 0.2s, background-color 0.2s, color 0.2s;
+        .theme-picker-overlay[data-dismissible='true'] {
+            cursor: pointer;
         }
 
-        body.egg-active .main-menu-btn:hover,
-        body.egg-active .nav-btn:hover {
-            box-shadow: 0 0 15px #b64901;
-            background-color: #2d2d2d;
-            color: #fff;
+        .theme-picker-overlay[data-dismissible='true'] .theme-picker-modal {
+            cursor: default;
+        }
+
+        .theme-picker-modal {
+            width: min(680px, 100%);
+            background: linear-gradient(180deg, var(--panel-bg-soft), var(--panel-bg-strong));
+            border: 4px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            box-shadow: 0 16px 0 rgba(0, 0, 0, 0.45);
+            padding: 16px;
+        }
+
+        .theme-picker-modal h2 {
+            margin: 0 0 10px 0;
+            color: var(--highlight);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-picker-modal p {
+            margin: 0 0 14px 0;
+            color: var(--text-dim);
+            font-size: 0.84rem;
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .theme-option {
+            background: var(--panel-bg);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            color: var(--text-main);
+            text-align: left;
+            padding: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 90px;
+        }
+
+        .theme-option strong {
+            color: var(--highlight);
+            font-size: 0.86rem;
+        }
+
+        .theme-option span {
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            line-height: 1.4;
+        }
+
+        .theme-option.selected {
+            border-color: var(--scroll-thumb-edge) var(--border-light) var(--border-light) var(--scroll-thumb-edge);
+            outline: 2px solid var(--highlight);
+            transform: translateY(-1px);
+        }
+
+        .theme-picker-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
         }
 
         /* Search input style */
@@ -1221,6 +1669,14 @@
                 margin-right: 0 !important;
             }
 
+            .toolbar-controls {
+                width: 100%;
+            }
+
+            .toolbar-select {
+                width: 100%;
+            }
+
             .pixel-input {
                 width: 100% !important;
                 max-width: 100%;
@@ -1229,6 +1685,10 @@
 
             .screen-content-scroll {
                 padding: 14px;
+            }
+
+            .theme-options {
+                grid-template-columns: 1fr;
             }
 
             .catalog-summary {
@@ -1313,24 +1773,51 @@
 </head>
 
 <body class="app-booting">
-    <video id="startup-video" src="assets/startup.mp4" muted playsinline></video>
     <canvas id="bg-canvas"></canvas>
-    <audio id="startupSound" src="assets/startup.mp3"></audio>
-    <audio id="staticSound" src="assets/static_loop.mp3" loop></audio>
-    <audio id="rareSound" src="assets/alert_noise.mp3"></audio>
 
     <div class="scanlines"></div>
     <div id="flicker-overlay"></div>
     <div id="glitch-clone"></div>
 
     <div id="rare-screen">
+        <div class="rare-side-glitch left" aria-hidden="true"></div>
+        <div class="rare-side-glitch right" aria-hidden="true"></div>
         <img src="assets/bonnie_tech_logo.png" alt="Bonnie Tech" class="rare-logo"
             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSIjZmZmIj48cGF0aCBkPSJNNTAgMTBMMTAgOTBoODB6Ii8+PC9zdmc+'">
-        <div class="rare-text">Please Stand By</div>
+        <div class="rare-title" id="rare-title">System Error</div>
+        <div class="rare-text" id="rare-text">Signal Desynchronizing</div>
+        <div class="rare-subtext" id="rare-subtext">Collecting fault context...</div>
+        <div class="rare-code" id="rare-code"></div>
     </div>
 
-    <div id="startup-screen">
-        <div class="startup-line"></div>
+    <div class="theme-picker-overlay" id="theme-picker" role="dialog" aria-modal="true"
+        aria-label="Choose your theme">
+        <div class="theme-picker-modal">
+            <h2>Choose Your Theme</h2>
+            <p>Pick a style to preview instantly, then confirm to save it for next time.</p>
+            <div class="theme-options">
+                <button class="theme-option" type="button" data-theme="light" aria-pressed="false">
+                    <strong>Light Mode</strong>
+                    <span>Bright and clean for daytime browsing.</span>
+                </button>
+                <button class="theme-option selected" type="button" data-theme="dark" aria-pressed="true">
+                    <strong>Dark Mode</strong>
+                    <span>Monochrome dark interface with neutral highlights.</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="blackmesa" aria-pressed="false">
+                    <strong>Black Mesa</strong>
+                    <span>Orange-accented industrial UI inspired by the game menus.</span>
+                </button>
+                <button class="theme-option" type="button" data-theme="xen" aria-pressed="false">
+                    <strong>Xen Theme</strong>
+                    <span>Blue and purple space styling for your custom background.</span>
+                </button>
+            </div>
+            <div class="theme-picker-actions">
+                <button class="pixel-btn" id="theme-cancel-btn" type="button" style="margin-right: 10px;">Cancel</button>
+                <button class="pixel-btn" id="theme-confirm-btn" type="button">Confirm Theme</button>
+            </div>
+        </div>
     </div>
 
     <div id="boot-overlay" role="status" aria-live="polite" aria-busy="true">
@@ -1350,11 +1837,14 @@
             <img style="width: 100%; height: 100%" src="assets/home.png"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiA0bC04IDdoMnY4aDR2LTRoNHY0aDR2LTRoMnptNiA5LjV2LTQuNTNsLTYtNS41LTYgNS41VjE1aDEydi00LjV6Ii8+PC9zdmc+'">
         </div>
+        <button class="nav-btn" id="theme-btn" type="button" aria-label="Change theme">
+            <img src="assets/gear.png" alt="Theme settings">
+        </button>
     </div>
 
     <footer>
         <div class="footer">
-            <span class="footer_trigger" id="footer-trigger">brr_tech</span>
+            <span>brr_tech</span>
         </div>
     </footer>
 
@@ -1363,6 +1853,11 @@
         <div class="left-panel">
             <div class="menu-title">Block Types</div>
             <div class="menu-btn-group">
+                <button class="main-menu-btn" onclick="openCategory('all')">
+                    <img src="assets/info_playerspawn.png" class="btn-icon" alt="">
+                    <span>All</span>
+                </button>
+
                 <button class="main-menu-btn" onclick="openCategory('tools')">
                     <img src="assets/brr_trigger.png" class="btn-icon" alt="">
                     <span>Tools</span>
@@ -1374,11 +1869,11 @@
                 </button>
 
                 <button class="main-menu-btn" onclick="openCategory('logic')">
-                    <img src="assets/logic_auto.png" class="btn-icon" alt="">
+                    <img src="assets/game_nametag.png" class="btn-icon" alt="">
                     <span>Logic</span>
                 </button>
                 <button class="main-menu-btn" onclick="openCategory('game')">
-                    <img src="assets/game_round_win.png" class="btn-icon" alt="">
+                    <img src="assets/missing_texture.png" class="btn-icon" alt="">
                     <span>Game</span>
                 </button>
             </div>
@@ -1386,11 +1881,6 @@
             <div class="divider"></div>
 
             <div class="menu-title" style="margin-top: 10px;">Having questions?</div>
-            <button class="main-menu-btn" onclick="openCategory('tools')">
-                <img src="assets/func_train.png" class="btn-icon" alt="">
-                <span>Browse All Core Blocks</span>
-            </button>
-
             <button class="main-menu-btn" onclick="navigateTo('howto-screen')">
                 <img src="assets/info_playerspawn_mini.png" class="btn-icon" alt="">
                 <span>Learn about it here!</span>
@@ -1439,8 +1929,17 @@
             </div>
 
             <div class="screen-header-action">
-                <input type="text" id="searchInput" class="pixel-input tools-search"
-                    placeholder="Search blocks, categories, or keywords...">
+                <div class="toolbar-controls">
+                    <select id="catalogFilter" class="toolbar-select" aria-label="Filter block category">
+                        <option value="all">All Blocks</option>
+                        <option value="tools">Tools &amp; Blocks</option>
+                        <option value="brushes">Brushes &amp; Environment</option>
+                        <option value="logic">Logic Blocks</option>
+                        <option value="game">Game &amp; Mode Blocks</option>
+                    </select>
+                    <input type="text" id="searchInput" class="pixel-input tools-search"
+                        placeholder="Search blocks, categories, or keywords...">
+                </div>
             </div>
 
         </div>
@@ -1493,7 +1992,7 @@
             </div>
             <div class="screen-header-action">
                 <input type="text" class="pixel-input" placeholder="Search..."
-                    style="background: #fff; color: #000; padding: 5px 10px;">
+                    style="padding: 5px 10px;">
             </div>
         </div>
 
@@ -1524,7 +2023,7 @@
             <button class="tab-btn" data-tab="inputs" onclick="switchTab('inputs')">Inputs</button>
         </div>
 
-        <div class="screen-content-scroll" style="background: #c6c6c6; padding: 0;">
+        <div class="screen-content-scroll" style="background: var(--tab-strip-bg); padding: 0;">
             <div class="detail-body">
 
                 <div id="tab-info" class="tab-content">
