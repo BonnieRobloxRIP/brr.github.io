@@ -154,6 +154,7 @@ window.BSECatalog = (() => {
       example: "Use inside walls/ceilings to block unwanted light bleed.",
       supportsOutputs: false,
       supportsInputs: false,
+      showInfoTab: false,
       classInfoConfigurable: false,
       classInfo: []
     },
