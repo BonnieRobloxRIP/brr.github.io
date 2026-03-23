@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeSettingsBtn = document.getElementById('theme-btn');
   const bootOverlay = document.getElementById('boot-overlay');
   const bootStatus = document.getElementById('boot-status');
+  const MISSING_TEXTURE_PATH = 'assets/missing_texture.png';
+  const connectionInfo = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const lowEndDeviceHints = {
+    saveData: Boolean(connectionInfo?.saveData),
+    lowMemory: Number(navigator.deviceMemory || 0) > 0 && Number(navigator.deviceMemory || 0) <= 2,
+    lowCpu: Number(navigator.hardwareConcurrency || 0) > 0 && Number(navigator.hardwareConcurrency || 0) <= 4
+  };
+  const isLowEndDevice = lowEndDeviceHints.saveData || lowEndDeviceHints.lowMemory || lowEndDeviceHints.lowCpu;
   const THEME_STORAGE_KEY = 'bse_theme';
   const THEME_PICKER_VERSION_KEY = 'bse_theme_picker_version';
   const THEME_PICKER_VERSION = 'v2';
@@ -86,21 +94,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function getEffectProfile() {
     const reduceMotion = reducedMotionQuery.matches;
     const isMobileLike = mobileViewportQuery.matches || coarsePointerQuery.matches;
+    const lowPowerMode = isLowEndDevice || reduceMotion;
 
     return {
       reduceMotion,
       isMobileLike,
-      spriteCount: reduceMotion ? 7 : (isMobileLike ? 10 : 20),
-      zoomFactor: isMobileLike ? 8 : 10,
-      glitchIntensity: reduceMotion ? 2 : (isMobileLike ? 4 : 6),
-      maxGlitchBars: reduceMotion ? 8 : (isMobileLike ? 12 : 18),
-      flickerDelayMin: reduceMotion ? 3600 : (isMobileLike ? 2600 : 1600),
-      flickerDelayRange: reduceMotion ? 5200 : (isMobileLike ? 5200 : 3800),
-      flickerOpacityMin: reduceMotion ? 0.04 : (isMobileLike ? 0.07 : 0.1),
-      flickerOpacityRange: reduceMotion ? 0.12 : (isMobileLike ? 0.2 : 0.32),
-      staticMin: reduceMotion ? 0.03 : (isMobileLike ? 0.04 : 0.06),
-      staticRange: reduceMotion ? 0.08 : (isMobileLike ? 0.12 : 0.16),
-      staticIntervalMs: reduceMotion ? 1400 : (isMobileLike ? 1200 : 900)
+      lowPowerMode,
+      spriteCount: lowPowerMode ? (isMobileLike ? 4 : 6) : (isMobileLike ? 10 : 20),
+      zoomFactor: lowPowerMode ? (isMobileLike ? 7 : 8) : (isMobileLike ? 8 : 10),
+      glitchIntensity: lowPowerMode ? 1 : (isMobileLike ? 4 : 6),
+      maxGlitchBars: lowPowerMode ? 5 : (isMobileLike ? 12 : 18),
+      flickerDelayMin: lowPowerMode ? 4200 : (isMobileLike ? 2600 : 1600),
+      flickerDelayRange: lowPowerMode ? 6200 : (isMobileLike ? 5200 : 3800),
+      flickerOpacityMin: lowPowerMode ? 0.03 : (isMobileLike ? 0.07 : 0.1),
+      flickerOpacityRange: lowPowerMode ? 0.09 : (isMobileLike ? 0.2 : 0.32),
+      staticMin: lowPowerMode ? 0.02 : (isMobileLike ? 0.04 : 0.06),
+      staticRange: lowPowerMode ? 0.05 : (isMobileLike ? 0.12 : 0.16),
+      staticIntervalMs: lowPowerMode ? 1800 : (isMobileLike ? 1200 : 900),
+      disableRareScreen: lowPowerMode
     };
   }
 
@@ -306,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuLabels = {
     all: 'All Blocks',
     tools: 'Tools & Blocks',
-    brushes: 'Brushes & Environment',
     logic: 'Logic Blocks',
     game: 'Game & Mode Blocks'
   };
@@ -314,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyMessages = {
     all: 'There are no public entries loaded yet.',
     tools: 'There are no tools or blocks here yet. More are coming soon.',
-    brushes: 'There are no brush blocks here yet. More are coming soon.',
     logic: 'There are no logic blocks here yet. More are coming soon.',
     game: 'There are no game blocks here yet. More are coming soon.'
   };
@@ -338,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const categoryFallbackIcons = {
     Tools: 'assets/brr_trigger.png',
-    Brushes: 'assets/missing_texture.png',
     Logic: 'assets/missing_texture.png',
     Game: 'assets/missing_texture.png',
     Environment: 'assets/missing_texture.png',
@@ -346,14 +354,43 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function getFallbackIcon(entry) {
-    return categoryFallbackIcons[entry?.category] || 'assets/brr_trigger.png';
+    return categoryFallbackIcons[entry?.category] || MISSING_TEXTURE_PATH;
   }
 
   function resolveIconPath(entry) {
     const mapped = catalogSource?.iconMap?.[entry.id];
-    if (mapped) return mapped;
-    return `assets/${entry.id}.png`;
+    if (typeof mapped === 'string' && mapped.trim()) return mapped;
+    if (typeof entry?.id === 'string' && entry.id.trim()) return `assets/${entry.id}.png`;
+    return MISSING_TEXTURE_PATH;
   }
+
+  function normalizeImagePath(pathValue) {
+    return `${pathValue || ''}`.trim().toLowerCase();
+  }
+
+  function getImageFallbackPath(imageElement) {
+    const explicitFallback = `${imageElement?.dataset?.fallback || ''}`.trim();
+    return explicitFallback || MISSING_TEXTURE_PATH;
+  }
+
+  function bindGlobalImageFallbacks() {
+    document.addEventListener('error', event => {
+      const target = event.target;
+      if (!(target instanceof HTMLImageElement)) return;
+
+      const fallbackPath = getImageFallbackPath(target);
+      if (!fallbackPath) return;
+
+      const currentSrc = normalizeImagePath(target.currentSrc || target.src);
+      const fallbackNormalized = normalizeImagePath(fallbackPath);
+
+      if (currentSrc === fallbackNormalized) return;
+      target.dataset.fallback = fallbackPath;
+      target.src = fallbackPath;
+    }, true);
+  }
+
+  bindGlobalImageFallbacks();
 
   function setToolsSubtitle(menuGroup) {
     if (!toolsSubtitle) return;
@@ -417,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fallbackIcon = getFallbackIcon(entry);
       card.innerHTML = `
         <div class="card-top">
-          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" class="card-img" alt="${escapeHtml(entry.name)} icon" loading="lazy" decoding="async" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">
+          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" class="card-img" alt="${escapeHtml(entry.name)} icon" loading="lazy" decoding="async">
         </div>
         <div class="card-category">${escapeHtml(entry.category || 'Tools')}</div>
         <div class="card-title">${escapeHtml(entry.name)}</div>
@@ -451,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
         <div class="card-top" style="width: 96px; min-width: 96px; min-height: 96px;">
-          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" alt="${escapeHtml(entry.name)} icon" class="card-img" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.onerror=null;}">
+          <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" alt="${escapeHtml(entry.name)} icon" class="card-img">
         </div>
         <div class="desc-box" style="flex-grow:1; margin-bottom:0;">${escapeHtml(entry.summary || '')}</div>
       </div>
@@ -646,6 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function collectBootImagePaths() {
     const imagePaths = new Set([
+      MISSING_TEXTURE_PATH,
       'assets/brr_trigger.png',
       'assets/home.png',
       'assets/power_button.png',
@@ -744,6 +782,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sprites = [];
     const loadedImages = [];
     let imagesLoadedCount = 0;
+    let animationFrameId = 0;
+    let lastFrameTimestamp = 0;
 
     function notifyBackgroundReady() {
       if (hasBackgroundStarted) return;
@@ -785,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < spriteCount; i++) {
         createSafeSprite(false);
       }
-      animate();
+      animationFrameId = requestAnimationFrame(animate);
       notifyBackgroundReady();
     }
 
@@ -855,7 +895,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    function animate() {
+    function animate(timestamp = 0) {
+      const targetFrameMs = effectProfile.lowPowerMode ? 42 : 16;
+      const frameDelta = timestamp - lastFrameTimestamp;
+
+      if (document.hidden || frameDelta < targetFrameMs) {
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+
+      lastFrameTimestamp = timestamp;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < sprites.length; i++) {
@@ -892,8 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     }
+
+    window.addEventListener('beforeunload', () => {
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    });
 
     return backgroundReadyPromise;
   }
@@ -1120,7 +1175,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function refreshRuntimeProfile() {
     const previousBars = maxGlitchBars;
-    const previousMobileState = effectProfile.isMobileLike;
 
     syncEffectProfile();
 
@@ -1128,9 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       createGlitchBarsPool();
     }
 
-    if (effectProfile.isMobileLike !== previousMobileState) {
-      scheduleRareScreen();
-    }
+    scheduleRareScreen();
   }
 
   window.addEventListener('resize', refreshRuntimeProfile);
@@ -1185,6 +1237,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function scheduleRareScreen() {
     if (rareScreenIntervalId) {
       window.clearInterval(rareScreenIntervalId);
+      rareScreenIntervalId = null;
+    }
+
+    if (effectProfile.disableRareScreen) {
+      return;
     }
 
     const intervalMs = effectProfile.isMobileLike ? 130000 : 100000;
@@ -1385,6 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function triggerRareScreen() {
     if (!rareScreen) return;
+    if (effectProfile.disableRareScreen) return;
     if (document.body.classList.contains('rare-distorting')) return;
 
     document.body.classList.add('rare-distorting');

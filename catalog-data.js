@@ -69,10 +69,31 @@ window.BSECatalog = (() => {
       name: "Area Portal",
       category: "Tools",
       menuGroup: "tools",
-      summary: "Teleports selected entities to coordinates or a named target.",
-      usage: "Pick a selector and either a destination position or destination target block.",
-      example: "Teleport players from a lobby portal into a map entrance.",
-      classInfo: [...defaultClassInfo]
+      summary: "Teleports entities inside the block using selectors and either coordinate or named-target destinations.",
+      usage: "Set Selector, then provide either Destination (x y z) or Destination Block (named info_target_areaportal block).",
+      example: "Use @a to move nearby players from a lobby portal to a named arena entry marker.",
+      classInfo: [
+        "Name: <string> - unique name used by links, outputs, and references.",
+        "Start Disabled: <boolean> - when true, portal behavior is inactive.",
+        "Selector: <selector|string> - target entities (supports @a, @e, @p, @r, minecraft:player, or entity type IDs).",
+        "Destination: <x y z> - direct teleport coordinates used when Destination Block is blank.",
+        "Destination Block: <named block> - routes to a matching info_target_areaportal block by name."
+      ],
+      outputTemplate: [
+        "Output Name: <string> - identifier for this output entry.",
+        "Output Type: <dropdown> - event type defined by the addon output table.",
+        "Output Target: <named block> - destination block to receive this output update.",
+        "Target Class Info: <dropdown> - target class-info field that will be modified.",
+        "Target Info Value: <string|boolean|number> - value assigned to the chosen target field.",
+        "Delay (in ticks): <int> - wait time before applying the output."
+      ],
+      notes: [
+        "At least one destination method is required (Destination or Destination Block).",
+        "When Destination Block is selected, Destination coordinates are intentionally cleared.",
+        "Named destination lookup targets blocks with type brr:info_target_areaportal_block.",
+        "Destination block teleport offset uses center on X/Z (+0.5) and exact block Y.",
+        "Selector @s resolves to no entities in this tool context."
+      ]
     },
     {
       id: "info_playerspawn",
@@ -94,12 +115,16 @@ window.BSECatalog = (() => {
       name: "Info Target AreaPortal",
       category: "Logic",
       menuGroup: "logic",
-      summary: "Named destination marker block used by Area Portal destination-block routing.",
-      usage: "Give it a unique name, then set Area Portal destination block to that name.",
-      example: "Name this block Arena_Entry and route several area portals to it.",
+      summary: "Named destination marker used by Area Portal destination-block routing.",
+      usage: "Give this block a unique Name, then set an Area Portal Destination Block to the same value.",
+      example: "Name this block Arena_Entry so multiple portals can route to one consistent spawn marker.",
+      supportsOutputs: false,
       classInfo: [
-        ...defaultClassInfo,
-        "Facing Direction: <string> - optional orientation metadata for destination behavior."
+        "Name: <string> - unique marker name used by Area Portal destination lookup."
+      ],
+      notes: [
+        "This block acts as a destination marker and is looked up by exact name match.",
+        "Area Portal teleports to marker center on X/Z and marker Y for consistent landing."
       ]
     },
     {
