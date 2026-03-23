@@ -282,8 +282,8 @@
             background-attachment: fixed;
             opacity: 1;
             animation: xenTwinkle1 6s ease-in-out infinite 0s,
-                        xenTwinkle2 7s ease-in-out infinite 1s,
-                        xenTwinkle3 8s ease-in-out infinite 2s;
+                xenTwinkle2 7s ease-in-out infinite 1s,
+                xenTwinkle3 8s ease-in-out infinite 2s;
         }
 
         #bg-canvas {
@@ -353,6 +353,8 @@
             justify-content: center;
             cursor: pointer;
             box-shadow: 3px 3px 0 #000;
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
         }
 
         .nav-btn.hidden {
@@ -367,8 +369,13 @@
         #theme-btn img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            image-rendering: pixelated;
+            object-fit: auto;
+        }
+
+        #theme-btn {
+            padding: 0;
+            font: inherit;
+            color: inherit;
         }
 
         #power-btn {
@@ -379,7 +386,8 @@
             background: #500;
         }
 
-        #home-btn, #theme-btn {
+        #home-btn,
+        #theme-btn {
             background: var(--button-bg, var(--bg-card));
         }
 
@@ -480,7 +488,6 @@
             flex-grow: 1;
             overflow-y: auto;
             padding: 20px;
-            -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
         }
 
@@ -1139,20 +1146,52 @@
         }
 
         @keyframes xenTwinkle1 {
-            0%, 10%, 20%, 100% { opacity: 0.65; }
-            5%, 15% { opacity: 0.15; }
+
+            0%,
+            10%,
+            20%,
+            100% {
+                opacity: 0.65;
+            }
+
+            5%,
+            15% {
+                opacity: 0.15;
+            }
         }
 
         @keyframes xenTwinkle2 {
-            0%, 100% { opacity: 0.5; }
-            25%, 35% { opacity: 0.08; }
-            30% { opacity: 0.4; }
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            25%,
+            35% {
+                opacity: 0.08;
+            }
+
+            30% {
+                opacity: 0.4;
+            }
         }
 
         @keyframes xenTwinkle3 {
-            0%, 100% { opacity: 0.6; }
-            40%, 55% { opacity: 0.1; }
-            45% { opacity: 0.55; }
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            40%,
+            55% {
+                opacity: 0.1;
+            }
+
+            45% {
+                opacity: 0.55;
+            }
         }
 
         .screen,
@@ -1348,10 +1387,12 @@
                 transform: translate(0, 0);
                 filter: none;
             }
+
             50% {
                 transform: translate(2px, -1px);
                 filter: contrast(1.05);
             }
+
             100% {
                 transform: translate(-2px, 1px);
                 filter: contrast(0.95);
@@ -1536,6 +1577,7 @@
             50% {
                 transform: translateX(2px) skewX(4deg);
             }
+
             100% {
                 transform: translateX(-2px) skewX(-4deg);
             }
@@ -1928,8 +1970,7 @@
         <div class="rare-code" id="rare-code"></div>
     </div>
 
-    <div class="theme-picker-overlay" id="theme-picker" role="dialog" aria-modal="true"
-        aria-label="Choose your theme">
+    <div class="theme-picker-overlay" id="theme-picker" role="dialog" aria-modal="true" aria-label="Choose your theme">
         <div class="theme-picker-modal">
             <h2>Choose Your Theme</h2>
             <p>Pick a style to preview instantly, then confirm to save it for next time.</p>
@@ -1952,7 +1993,8 @@
                 </button>
             </div>
             <div class="theme-picker-actions">
-                <button class="pixel-btn" id="theme-cancel-btn" type="button" style="margin-right: 10px;">Cancel</button>
+                <button class="pixel-btn" id="theme-cancel-btn" type="button"
+                    style="margin-right: 10px;">Cancel</button>
                 <button class="pixel-btn" id="theme-confirm-btn" type="button">Confirm Theme</button>
             </div>
         </div>
@@ -2001,17 +2043,12 @@
                     <span>Tools</span>
                 </button>
 
-                <button class="main-menu-btn" onclick="openCategory('brushes')">
-                    <img src="assets/brr_playerClip.png" class="btn-icon" alt="">
-                    <span>Brushes</span>
-                </button>
-
                 <button class="main-menu-btn" onclick="openCategory('logic')">
-                    <img src="assets/game_nametag.png" class="btn-icon" alt="">
+                    <img src="assets/logic_case.png" class="btn-icon" alt="">
                     <span>Logic</span>
                 </button>
                 <button class="main-menu-btn" onclick="openCategory('game')">
-                    <img src="assets/missing_texture.png" class="btn-icon" alt="">
+                    <img src="assets/game_nametag.png" class="btn-icon" alt="">
                     <span>Game</span>
                 </button>
             </div>
@@ -2071,7 +2108,6 @@
                     <select id="catalogFilter" class="toolbar-select" aria-label="Filter block category">
                         <option value="all">All Blocks</option>
                         <option value="tools">Tools &amp; Blocks</option>
-                        <option value="brushes">Brushes &amp; Environment</option>
                         <option value="logic">Logic Blocks</option>
                         <option value="game">Game &amp; Mode Blocks</option>
                     </select>
@@ -2129,8 +2165,7 @@
                 <h3 style="margin: 0;" id="placeholder-title">Page Title</h3>
             </div>
             <div class="screen-header-action">
-                <input type="text" class="pixel-input" placeholder="Search..."
-                    style="padding: 5px 10px;">
+                <input type="text" class="pixel-input" placeholder="Search..." style="padding: 5px 10px;">
             </div>
         </div>
 
