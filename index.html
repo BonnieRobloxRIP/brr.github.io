@@ -391,6 +391,13 @@
             background: var(--button-bg, var(--bg-card));
         }
 
+        #home-btn {
+            font-size: 1.35rem;
+            line-height: 1;
+            font-family: 'Minecraft', monospace;
+            color: var(--text-main);
+        }
+
         body[data-theme='dark'] #home-btn,
         body[data-theme='dark'] #theme-btn {
             background: var(--input-bg);
@@ -1754,10 +1761,6 @@
                 overflow: auto;
             }
 
-            #global-nav {
-                flex-direction: row;
-            }
-
             .footer {
                 padding-bottom: 5px;
                 padding-bottom: calc(env(safe-area-inset-bottom) + 5px);
@@ -2013,13 +2016,10 @@
             <img style="width: 100%; height: 100%" src="assets/power_button.png"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyYTEgMSAwIDAgMSAxIDF2MTBhMSAxIDAgMCAxLTIgMFYzYTEgMSAwIDAgMSAxLTF6bTAgMTRhNyA3IDAgMSAwIDAtMTQgNyA3IDAgMCAwIDAgMTR6Ii8+PC9zdmc+'">
         </div>
-        <div class="nav-btn hidden" id="home-btn" onclick="navigateTo('main-menu')">
-            <img style="width: 100%; height: 100%" src="assets/home.png"
-                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiA0bC04IDdoMnY4aDR2LTRoNHY0aDR2LTRoMnptNiA5LjV2LTQuNTNsLTYtNS41LTYgNS41VjE1aDEydi00LjV6Ii8+PC9zdmc+'">
-        </div>
         <button class="nav-btn" id="theme-btn" type="button" aria-label="Change theme">
             <img src="assets/gear.png" alt="Theme settings">
         </button>
+        <button class="nav-btn hidden" id="home-btn" type="button" aria-label="Go back" onclick="goBack()">←</button>
     </div>
 
     <footer>
@@ -2155,8 +2155,8 @@
                     creators in Minecraft Bedrock. This encyclopedia mirrors your in-game block workflow in one place.
                 </p>
                 <h2>Core UI Flow</h2>
-                <p>Every block follows a 4-part editing pattern: <strong>Class Info</strong>, <strong>Outputs</strong>,
-                    <strong>Existing Outputs</strong>, and <strong>Inputs</strong>. Name + Start Disabled are global
+                <p>Every block follows a 3-part editing pattern: <strong>Class Info</strong>, <strong>Outputs</strong>,
+                    and <strong>Inputs</strong>. Name + Start Disabled are global
                     fields used by all block types.
                 </p>
                 <h2>Quick Tips</h2>
@@ -2193,16 +2193,11 @@
                 <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
                 <h3 style="margin: 0;" id="detail-header-title">Tool Name</h3>
             </div>
-            <div class="screen-header-action">
-                <button class="pixel-btn" onclick="navigateTo('tools-screen')"
-                    style="background: #a00; color: #fff; border-color: #500;">Back</button>
-            </div>
         </div>
 
         <div class="tab-container">
             <button class="tab-btn active" data-tab="info" onclick="switchTab('info')">Class Info</button>
             <button class="tab-btn" data-tab="outputs" onclick="switchTab('outputs')">Outputs</button>
-            <button class="tab-btn" data-tab="existing" onclick="switchTab('existing')">Existing Outputs</button>
             <button class="tab-btn" data-tab="inputs" onclick="switchTab('inputs')">Inputs</button>
         </div>
 
@@ -2220,12 +2215,6 @@
                 <div id="tab-outputs" class="tab-content" style="display: none;">
                     <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Outputs</h2>
                     <div id="detail-outputs-content"></div>
-                </div>
-
-                <div id="tab-existing" class="tab-content" style="display: none;">
-                    <h2 style="color: var(--highlight); border-bottom: 2px solid var(--border-light);">Existing
-                        Outputs</h2>
-                    <div id="detail-existing-content"></div>
                 </div>
 
                 <div id="tab-inputs" class="tab-content" style="display: none;">

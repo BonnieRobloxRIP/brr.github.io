@@ -274,16 +274,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Global Navigation Buttons
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) {
-      if (screenId === 'main-menu') {
-        homeBtn.classList.add('hidden'); // Hide Home button on main menu
-      } else {
-        homeBtn.classList.remove('hidden'); // Show on all other screens
-      }
+      // Original behavior equivalent: only show a back action from detail to tools list.
+      homeBtn.classList.toggle('hidden', screenId !== 'detail-screen');
     }
 
     // Update Placeholder Title if needed
     if (screenId === 'placeholder-screen' && title) {
       document.getElementById('placeholder-title').textContent = title;
+    }
+  };
+
+  window.goBack = function () {
+    const activeScreenId = document.querySelector('.screen.active')?.id || '';
+    if (activeScreenId === 'detail-screen') {
+      window.navigateTo('tools-screen');
     }
   };
 
@@ -294,14 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailHeaderTitle = document.getElementById('detail-header-title');
   const detailInfoContent = document.getElementById('detail-info-content');
   const detailOutputsContent = document.getElementById('detail-outputs-content');
-  const detailExistingContent = document.getElementById('detail-existing-content');
   const detailInputsContent = document.getElementById('detail-inputs-content');
   const detailTabButtons = Array.from(document.querySelectorAll('.tab-btn'));
   const detailTabContainer = document.querySelector('.tab-container');
   const detailTabContents = {
     info: document.getElementById('tab-info'),
     outputs: document.getElementById('tab-outputs'),
-    existing: document.getElementById('tab-existing'),
     inputs: document.getElementById('tab-inputs')
   };
 
@@ -535,30 +537,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return buildOutputsHtml();
   }
 
-  function buildExistingOutputsHtml() {
-    return `
-      <p class="detail-muted">This tab is for managing already-saved outputs on the selected block.</p>
-      ${buildListHtml(catalogSource.existingOutputTemplate)}
-    `;
-  }
-
-  function buildExistingOutputsHtmlForEntry(entry) {
-    if (entry?.supportsOutputs === false) {
-      return `
-        <p class="detail-muted">There are no existing outputs for this block because it does not support outputs.</p>
-      `;
-    }
-
-    if (Array.isArray(entry?.existingOutputTemplate) && entry.existingOutputTemplate.length > 0) {
-      return `
-        <p class="detail-muted">This tab is for managing already-saved outputs on the selected block.</p>
-        ${buildListHtml(entry.existingOutputTemplate)}
-      `;
-    }
-
-    return buildExistingOutputsHtml();
-  }
-
   function buildInputsHtml() {
     return `
       <p class="detail-muted">Inputs are incoming links from other blocks and are read-only in your docs.</p>
@@ -600,7 +578,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const supportsOutputs = entry?.supportsOutputs !== false;
     const supportsInputs = entry?.supportsInputs !== false;
     setDetailTabVisibility('outputs', supportsOutputs);
-    setDetailTabVisibility('existing', supportsOutputs);
     setDetailTabVisibility('info', supportsInfo);
     setDetailTabVisibility('inputs', supportsInputs);
 
@@ -619,7 +596,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (detailHeaderTitle) detailHeaderTitle.innerText = entry.name;
     if (detailInfoContent) detailInfoContent.innerHTML = buildDetailInfo(entry);
     if (detailOutputsContent) detailOutputsContent.innerHTML = buildOutputsHtmlForEntry(entry);
-    if (detailExistingContent) detailExistingContent.innerHTML = buildExistingOutputsHtmlForEntry(entry);
     if (detailInputsContent) detailInputsContent.innerHTML = buildInputsHtmlForEntry(entry);
 
     switchTab(getFirstVisibleDetailTab());
