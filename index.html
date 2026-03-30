@@ -368,9 +368,13 @@
 
         #theme-btn img {
             width: 100%;
-            height: 100%;
-            object-fit: auto;
         }
+
+        #home-btn img {
+            width: 150%;
+            height: 100%;
+        }
+
 
         #theme-btn {
             padding: 0;
@@ -387,11 +391,12 @@
         }
 
         #home-btn,
+        #back-btn,
         #theme-btn {
             background: var(--button-bg, var(--bg-card));
         }
 
-        #home-btn {
+        #back-btn {
             font-size: 1.35rem;
             line-height: 1;
             font-family: 'Minecraft', monospace;
@@ -399,21 +404,25 @@
         }
 
         body[data-theme='dark'] #home-btn,
+        body[data-theme='dark'] #back-btn,
         body[data-theme='dark'] #theme-btn {
             background: var(--input-bg);
         }
 
         body[data-theme='light'] #home-btn,
+        body[data-theme='light'] #back-btn,
         body[data-theme='light'] #theme-btn {
             background: #666666;
         }
 
         body[data-theme='blackmesa'] #home-btn,
+        body[data-theme='blackmesa'] #back-btn,
         body[data-theme='blackmesa'] #theme-btn {
             background: #2d2621;
         }
 
         body[data-theme='xen'] #home-btn,
+        body[data-theme='xen'] #back-btn,
         body[data-theme='xen'] #theme-btn {
             background: #1a2952;
         }
@@ -2016,10 +2025,13 @@
             <img style="width: 100%; height: 100%" src="assets/power_button.png"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyYTEgMSAwIDAgMSAxIDF2MTBhMSAxIDAgMCAxLTIgMFYzYTEgMSAwIDAgMSAxLTF6bTAgMTRhNyA3IDAgMSAwIDAtMTQgNyA3IDAgMCAwIDAgMTR6Ii8+PC9zdmc+'">
         </div>
+        <button class="nav-btn hidden" id="home-btn" type="button" aria-label="Go to home" onclick="goHome()">
+            <img src="assets/home.png" alt="Home">
+        </button>
         <button class="nav-btn" id="theme-btn" type="button" aria-label="Change theme">
             <img src="assets/gear.png" alt="Theme settings">
         </button>
-        <button class="nav-btn hidden" id="home-btn" type="button" aria-label="Go back" onclick="goBack()">←</button>
+        <button class="nav-btn hidden" id="back-btn" type="button" aria-label="Go back" onclick="goBack()">←</button>
     </div>
 
     <footer>

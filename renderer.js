@@ -274,8 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Global Navigation Buttons
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) {
-      // Original behavior equivalent: only show a back action from detail to tools list.
-      homeBtn.classList.toggle('hidden', screenId !== 'detail-screen');
+      homeBtn.classList.toggle('hidden', screenId === 'main-menu');
+    }
+
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+      backBtn.classList.toggle('hidden', screenId !== 'detail-screen');
     }
 
     // Update Placeholder Title if needed
@@ -289,6 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeScreenId === 'detail-screen') {
       window.navigateTo('tools-screen');
     }
+  };
+
+  window.goHome = function () {
+    window.navigateTo('main-menu');
   };
 
   const blockGrid = document.getElementById('blockGrid');
@@ -1075,9 +1083,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.triggerPowerOff = function () {
     window.close();
-    if (!window.closed) {
-      window.location.href = 'about:blank';
-    }
   };
 
 
