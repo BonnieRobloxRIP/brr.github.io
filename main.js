@@ -1,4 +1,4 @@
-const { app, BrowserWindow, nativeTheme } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 function createWindow() {

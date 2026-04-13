@@ -330,6 +330,24 @@
             cursor: default;
         }
 
+        #conditions-top-btn {
+            position: fixed;
+            top: 30px;
+            right: 6px;
+            z-index: 9501;
+            min-width: 56px;
+            padding: 4px 8px;
+            font-size: 0.72rem;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        #conditions-top-btn.visible {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         #global-nav {
             position: fixed;
             z-index: 9500;
@@ -804,6 +822,204 @@
         .howto-box p {
             line-height: 1.6;
             color: var(--text-dim);
+        }
+
+        .conditions-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .conditions-category-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .conditions-meta {
+            margin: 0 0 10px 0;
+        }
+
+        .conditions-jump-btn {
+            background: var(--bg-card);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            color: var(--text-main);
+            font-family: 'Minecraft';
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 6px 9px;
+            cursor: pointer;
+        }
+
+        .conditions-jump-btn:hover {
+            background: color-mix(in srgb, var(--bg-card) 78%, var(--highlight) 22%);
+            color: var(--bg-main);
+        }
+
+        .conditions-jump-btn:active {
+            transform: translateY(1px);
+        }
+
+        .conditions-count {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+
+        .condition-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .condition-category {
+            margin-bottom: 12px;
+        }
+
+        .condition-category-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 8px 0;
+            border-bottom: 2px dashed var(--border-light);
+            padding-bottom: 6px;
+        }
+
+        .condition-category-title {
+            color: var(--highlight);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .condition-category-count {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+        }
+
+        .condition-entry {
+            background: var(--panel-bg-strong);
+            border: 2px solid;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            box-shadow: 3px 3px 0 #000;
+        }
+
+        .condition-entry summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+            color: var(--highlight);
+            list-style: none;
+        }
+
+        .condition-entry summary::after {
+            content: '+';
+            color: var(--text-main);
+        }
+
+        .condition-entry[open] summary::after {
+            content: '-';
+        }
+
+        .condition-key {
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        .condition-params {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            line-height: 1.35;
+            text-align: right;
+        }
+
+        .condition-content {
+            padding: 12px;
+            border-top: 1px solid var(--border-dark);
+            background: var(--input-bg);
+        }
+
+        .condition-blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .condition-block-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-dark);
+        }
+
+        .condition-block-btn {
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+        }
+
+        .condition-block-btn:hover {
+            background: color-mix(in srgb, var(--bg-card) 82%, var(--highlight) 18%);
+            transform: translateY(-1px);
+        }
+
+        .condition-block-btn:active {
+            transform: translateY(1px);
+        }
+
+        .condition-block-card img {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--border-dark);
+        }
+
+        .condition-block-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .condition-block-name {
+            color: var(--text-main);
+            font-size: 0.82rem;
+            line-height: 1.2;
+        }
+
+        .condition-block-id {
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+        }
+
+        .conditions-empty {
+            display: none;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 24px;
         }
 
         .block-grid {
@@ -1761,9 +1977,38 @@
 
         @media (max-width: 900px) {
             :root {
-                --nav-btn-size: 40px;
+                --nav-btn-size: 16px;
                 --nav-edge-offset: 8px;
                 --header-nav-offset: 12px;
+            }
+
+            #global-nav {
+                flex-direction: row;
+                gap: 6px;
+                top: calc(env(safe-area-inset-top) + 4px);
+                left: calc(env(safe-area-inset-left) + 4px);
+            }
+
+            .nav-btn {
+                box-shadow: 2px 2px 0 #000;
+                border-width: 1px;
+            }
+
+            #back-btn {
+                font-size: 0.86rem;
+            }
+
+            #version-tag {
+                font-size: 0.85rem;
+                padding: 3px 7px;
+            }
+
+            #conditions-top-btn {
+                top: 24px;
+                right: 4px;
+                min-width: 44px;
+                padding: 3px 6px;
+                font-size: 0.64rem;
             }
 
             body {
@@ -1839,7 +2084,7 @@
                 align-items: flex-start;
                 flex-wrap: wrap;
                 gap: 10px;
-                padding: calc(env(safe-area-inset-top) + 56px) 12px 12px 12px !important;
+                padding: calc(env(safe-area-inset-top) + 28px) 12px 10px 12px !important;
             }
 
             .screen-title-group {
@@ -1914,22 +2159,50 @@
             }
 
             .tab-container {
-                flex-wrap: wrap;
-                gap: 8px;
+                flex-wrap: nowrap;
+                gap: 4px;
                 padding: 8px 12px 0;
+                overflow-x: auto;
             }
 
             .tab-btn {
-                flex: 1 1 calc(50% - 8px);
+                flex: 1 1 0;
                 text-align: center;
-                padding: 8px 10px;
-                font-size: 0.84rem;
+                padding: 6px 6px;
+                font-size: 0.72rem;
+                white-space: nowrap;
             }
 
             .detail-body {
                 margin: 0 0 14px 0;
                 min-height: 0;
                 padding: 14px;
+            }
+        }
+
+        @media (max-width: 900px) and (orientation: landscape) {
+            .screen-header-container {
+                padding: calc(env(safe-area-inset-top) + 22px) 10px 8px 10px !important;
+                gap: 6px;
+            }
+
+            .screen-header-container h1 {
+                font-size: 0.96rem;
+                line-height: 1.15;
+            }
+
+            .screen-header-container h3 {
+                font-size: 0.72rem;
+            }
+
+            .toolbar-select,
+            .pixel-input {
+                padding: 5px 8px;
+                font-size: 0.76rem !important;
+            }
+
+            .screen-content-scroll {
+                padding: 10px;
             }
         }
 
@@ -2018,7 +2291,8 @@
         <div class="boot-subtitle" id="boot-status">Preparing interface...</div>
     </div>
 
-    <div style="height: 29px; width: 70px" id="version-tag">v0.1.3</div>
+    <div style="height: 29px; width: 70px" id="version-tag">v0.1.4</div>
+    <button id="conditions-top-btn" class="pixel-btn" type="button" onclick="scrollConditionsToTop()">Top</button>
 
     <div id="global-nav">
         <div class="nav-btn" id="power-btn" onclick="triggerPowerOff()">
@@ -2073,6 +2347,11 @@
                 <span>Learn about it here!</span>
                 <img src="assets/info_target_areaportal_mini.png" class="btn-icon"
                     style="width: auto; height: auto; object-fit: contain;" alt="">
+            </button>
+
+            <button class="main-menu-btn" onclick="openConditionsPage()">
+                <img src="assets/brr_trigger.png" class="btn-icon" alt="">
+                <span>Condition Reference</span>
             </button>
         </div>
 
@@ -2176,6 +2455,29 @@
                     tabs when wiring larger systems. Conditions and examples in this app are based on your draft docs.
                 </p>
             </div>
+        </div>
+    </div>
+
+
+    <div id="conditions-screen" class="screen">
+        <div class="screen-header-container with-nav-offset">
+            <div class="screen-title-group">
+                <h1 style="margin: 0; line-height: 1;">Bonnie's Source Engine Encyclopedia</h1>
+                <h3 style="margin: 0;">Condition Reference</h3>
+            </div>
+        </div>
+
+        <div class="screen-content-scroll">
+            <div class="conditions-toolbar">
+                <input type="text" id="conditionSearchInput" class="pixel-input tools-search"
+                    placeholder="Search conditions, descriptions, examples...">
+            </div>
+            <div id="conditions-category-nav" class="conditions-category-nav"></div>
+            <div class="conditions-meta">
+                <span id="conditions-count" class="conditions-count">0 conditions</span>
+            </div>
+            <div id="conditions-content" class="condition-list"></div>
+            <p id="conditions-empty" class="conditions-empty">No conditions match your current search.</p>
         </div>
     </div>
 

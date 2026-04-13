@@ -271,6 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
       target.classList.add('active');
     }
 
+    if (conditionsTopBtn) {
+      conditionsTopBtn.classList.toggle('visible', screenId === 'conditions-screen');
+    }
+
     // Handle Global Navigation Buttons
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) {
@@ -291,7 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.goBack = function () {
     const activeScreenId = document.querySelector('.screen.active')?.id || '';
     if (activeScreenId === 'detail-screen') {
-      window.navigateTo('tools-screen');
+      window.navigateTo(detailBackScreen);
+      if (detailBackScreen === 'conditions-screen' && conditionsScroll) {
+        conditionsScroll.scrollTop = conditionsScrollRestoreTop;
+      }
     }
   };
 
@@ -299,10 +306,22 @@ document.addEventListener('DOMContentLoaded', () => {
     window.navigateTo('main-menu');
   };
 
+  window.scrollConditionsToTop = function () {
+    if (!conditionsScroll) return;
+    conditionsScroll.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const blockGrid = document.getElementById('blockGrid');
   const toolsSubtitle = document.getElementById('tools-subtitle');
   const catalogCount = document.getElementById('catalog-count');
   const catalogEmpty = document.getElementById('catalog-empty');
+  const conditionsCount = document.getElementById('conditions-count');
+  const conditionsCategoryNav = document.getElementById('conditions-category-nav');
+  const conditionSearchInput = document.getElementById('conditionSearchInput');
+  const conditionsContent = document.getElementById('conditions-content');
+  const conditionsEmpty = document.getElementById('conditions-empty');
+  const conditionsScroll = document.querySelector('#conditions-screen .screen-content-scroll');
+  const conditionsTopBtn = document.getElementById('conditions-top-btn');
   const detailHeaderTitle = document.getElementById('detail-header-title');
   const detailInfoContent = document.getElementById('detail-info-content');
   const detailOutputsContent = document.getElementById('detail-outputs-content');
@@ -324,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const blockCatalog = Array.isArray(catalogSource.entries) ? catalogSource.entries : [];
+  const conditionReference = Array.isArray(catalogSource.conditionReference) ? catalogSource.conditionReference : [];
   const menuLabels = {
     all: 'All Blocks',
     tools: 'Tools & Blocks',
@@ -341,6 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentMenuGroup = 'tools';
   let currentSearchTerm = '';
   let searchDebounceTimeoutId = null;
+  let currentConditionSearchTerm = '';
+  let conditionSearchDebounceTimeoutId = null;
+  let detailBackScreen = 'tools-screen';
+  let conditionsScrollRestoreTop = 0;
 
   function normalizeText(value) {
     return `${value ?? ''}`.toLowerCase();
@@ -438,6 +462,62 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
+  function getConditionCapableBlocks(blockIds) {
+    if (!Array.isArray(blockIds) || blockIds.length === 0) return [];
+
+    const normalizedIds = new Set(blockIds.map(id => `${id || ''}`.trim()));
+    return blockCatalog.filter(entry => normalizedIds.has(entry.id));
+  }
+
+  function getFilteredConditions() {
+    if (!currentConditionSearchTerm) return conditionReference;
+
+    return conditionReference.filter(condition => {
+      const haystack = [
+        condition.key,
+        condition.description,
+        condition.params,
+        condition.example,
+        ...(Array.isArray(condition.blocks) ? condition.blocks : [])
+      ].map(normalizeText).join(' ');
+
+      return haystack.includes(currentConditionSearchTerm);
+    });
+  }
+
+  function getConditionCategory(conditionKey) {
+    const key = `${conditionKey || ''}`;
+
+    if (key === 'noCondition') return 'General';
+    if (key.startsWith('ifWeather') || key.startsWith('ifTime')) return 'Weather & Time';
+    if (key.startsWith('ifBlock')) return 'Block & Area';
+    if (key.startsWith('ifItemDurability')) return 'Items';
+    if (key.includes('Score')) return 'Score';
+    if (key.startsWith('ifPlayer')) return 'Player';
+    if (key.startsWith('ifEntity')) return 'Entity';
+
+    return 'Other';
+  }
+
+  function groupConditionsByCategory(conditions) {
+    const categoryOrder = ['General', 'Player', 'Entity', 'Score', 'Block & Area', 'Weather & Time', 'Items', 'Other'];
+    const buckets = new Map(categoryOrder.map(category => [category, []]));
+
+    conditions.forEach(condition => {
+      const category = getConditionCategory(condition.key);
+      if (!buckets.has(category)) buckets.set(category, []);
+      buckets.get(category).push(condition);
+    });
+
+    return Array.from(buckets.entries())
+      .filter(([, entries]) => entries.length > 0)
+      .sort((a, b) => {
+        const ai = categoryOrder.indexOf(a[0]);
+        const bi = categoryOrder.indexOf(b[0]);
+        return (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) - (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
+      });
+  }
+
   function renderCatalog() {
     if (!blockGrid) return;
     blockGrid.innerHTML = '';
@@ -476,6 +556,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     blockGrid.appendChild(fragment);
+  }
+
+  function renderConditionsPage() {
+    if (!conditionsContent) return;
+    conditionsContent.innerHTML = '';
+
+    const filtered = getFilteredConditions();
+    const fragment = document.createDocumentFragment();
+
+    if (conditionsCount) {
+      conditionsCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'condition' : 'conditions'}`;
+    }
+
+    if (conditionsEmpty) {
+      conditionsEmpty.style.display = filtered.length === 0 ? 'block' : 'none';
+      conditionsEmpty.textContent = currentConditionSearchTerm
+        ? 'No conditions match your current search.'
+        : 'No condition reference entries are currently loaded.';
+    }
+
+    const grouped = groupConditionsByCategory(filtered);
+
+    if (conditionsCategoryNav) {
+      conditionsCategoryNav.innerHTML = '';
+    }
+
+    grouped.forEach(([categoryName, conditions]) => {
+      const categorySection = document.createElement('section');
+      categorySection.className = 'condition-category';
+      const categoryId = `condition-category-${normalizeText(categoryName).replace(/[^a-z0-9]+/g, '-')}`;
+      categorySection.id = categoryId;
+
+      const categoryHeader = document.createElement('div');
+      categoryHeader.className = 'condition-category-header';
+      categoryHeader.innerHTML = `
+        <span class="condition-category-title">${escapeHtml(categoryName)}</span>
+        <span class="condition-category-count">${conditions.length} ${conditions.length === 1 ? 'condition' : 'conditions'}</span>
+      `;
+      categorySection.appendChild(categoryHeader);
+
+      if (conditionsCategoryNav) {
+        const jumpButton = document.createElement('button');
+        jumpButton.type = 'button';
+        jumpButton.className = 'conditions-jump-btn';
+        jumpButton.textContent = categoryName;
+        jumpButton.addEventListener('click', () => {
+          const target = document.getElementById(categoryId);
+          if (!target) return;
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        conditionsCategoryNav.appendChild(jumpButton);
+      }
+
+      conditions.forEach(condition => {
+        const usageBlocks = getConditionCapableBlocks(condition.blocks);
+        const usageBlocksHtml = usageBlocks.length > 0
+          ? usageBlocks.map(entry => {
+            const icon = resolveIconPath(entry);
+            const fallbackIcon = getFallbackIcon(entry);
+
+            return `
+              <button type="button" class="condition-block-card condition-block-btn" data-block-id="${escapeHtml(entry.id)}" aria-label="Open ${escapeHtml(entry.name)} details">
+                <img src="${escapeHtml(icon)}" data-fallback="${escapeHtml(fallbackIcon)}" alt="${escapeHtml(entry.name)} icon" loading="lazy" decoding="async">
+                <div class="condition-block-meta">
+                  <div class="condition-block-name">${escapeHtml(entry.name)}</div>
+                  <div class="condition-block-id">${escapeHtml(entry.id)}</div>
+                </div>
+              </button>
+            `;
+          }).join('')
+          : '<p class="detail-muted">No compatible blocks were mapped for this condition.</p>';
+
+        const conditionItem = document.createElement('details');
+        conditionItem.className = 'condition-entry';
+        conditionItem.innerHTML = `
+          <summary>
+            <span class="condition-key">${escapeHtml(condition.key || 'Unknown Condition')}</span>
+            <span class="condition-params">${escapeHtml(condition.params || 'No parameters')}</span>
+          </summary>
+          <div class="condition-content">
+            <h3 class="section-title">What It Does</h3>
+            <p class="detail-muted">${escapeHtml(condition.description || 'No description provided.')}</p>
+
+            <h3 class="section-title">Example Usage</h3>
+            <p class="detail-muted">${escapeHtml(condition.example || 'No example provided.')}</p>
+
+            <details>
+              <summary>Blocks That Can Use This Condition (${usageBlocks.length})</summary>
+              <div class="details-inner">
+                <div class="condition-blocks-grid">${usageBlocksHtml}</div>
+              </div>
+            </details>
+          </div>
+        `;
+
+        categorySection.appendChild(conditionItem);
+      });
+
+      fragment.appendChild(categorySection);
+    });
+
+    conditionsContent.appendChild(fragment);
+
+    conditionsContent.querySelectorAll('.condition-block-btn').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const blockId = event.currentTarget?.dataset?.blockId;
+        if (!blockId) return;
+
+        conditionsScrollRestoreTop = conditionsScroll?.scrollTop || 0;
+        window.openDetailView(blockId, {
+          originScreen: 'conditions-screen',
+          restoreScrollTop: conditionsScrollRestoreTop
+        });
+      });
+    });
   }
 
   function buildListHtml(items) {
@@ -595,9 +790,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.openDetailView = function (blockId) {
+  window.openDetailView = function (blockId, options = {}) {
     const entry = blockCatalog.find(block => block.id === blockId);
     if (!entry) return;
+
+    detailBackScreen = options.originScreen || 'tools-screen';
+    if (detailBackScreen === 'conditions-screen') {
+      conditionsScrollRestoreTop = Number.isFinite(options.restoreScrollTop)
+        ? options.restoreScrollTop
+        : (conditionsScroll?.scrollTop || 0);
+    }
 
     updateDetailTabs(entry);
 
@@ -642,6 +844,17 @@ document.addEventListener('DOMContentLoaded', () => {
     navigateTo('tools-screen');
   };
 
+  window.openConditionsPage = function () {
+    currentConditionSearchTerm = '';
+
+    if (conditionSearchInput) {
+      conditionSearchInput.value = '';
+    }
+
+    renderConditionsPage();
+    navigateTo('conditions-screen');
+  };
+
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const nextValue = normalizeText(e.target.value).trim();
@@ -662,6 +875,21 @@ document.addEventListener('DOMContentLoaded', () => {
       currentMenuGroup = event.target.value || 'all';
       setToolsSubtitle(currentMenuGroup);
       renderCatalog();
+    });
+  }
+
+  if (conditionSearchInput) {
+    conditionSearchInput.addEventListener('input', (event) => {
+      const nextValue = normalizeText(event.target.value).trim();
+
+      if (conditionSearchDebounceTimeoutId) {
+        window.clearTimeout(conditionSearchDebounceTimeoutId);
+      }
+
+      conditionSearchDebounceTimeoutId = window.setTimeout(() => {
+        currentConditionSearchTerm = nextValue;
+        renderConditionsPage();
+      }, 70);
     });
   }
 
@@ -880,13 +1108,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function animate(timestamp = 0) {
-      const targetFrameMs = effectProfile.lowPowerMode ? 42 : 16;
-      const frameDelta = timestamp - lastFrameTimestamp;
-
-      if (document.hidden || frameDelta < targetFrameMs) {
+      if (document.hidden) {
+        lastFrameTimestamp = timestamp;
         animationFrameId = requestAnimationFrame(animate);
         return;
       }
+
+      if (!lastFrameTimestamp) {
+        lastFrameTimestamp = timestamp;
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+
+      const rawFrameDelta = timestamp - lastFrameTimestamp;
+      const clampedFrameDelta = Math.min(Math.max(rawFrameDelta, 8), 48);
+      const motionScale = clampedFrameDelta / 16.6667;
 
       lastFrameTimestamp = timestamp;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -894,8 +1130,8 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < sprites.length; i++) {
         let s = sprites[i];
 
-        s.x += s.speedX;
-        s.y -= s.speedY;
+        s.x += s.speedX * motionScale;
+        s.y -= s.speedY * motionScale;
 
         const sW = s.width * zoomFactor;
         const sH = s.height * zoomFactor;
