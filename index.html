@@ -1311,12 +1311,14 @@
         }
 
         .tab-container {
+            height: 55px;
             display: flex;
             gap: 5px;
             margin-bottom: 0;
             padding-left: 20px;
             background: var(--tab-strip-bg);
             padding-top: 10px;
+            overflow: hidden;
         }
 
         .tab-btn {
@@ -1977,14 +1979,14 @@
 
         @media (max-width: 900px) {
             :root {
-                --nav-btn-size: 16px;
+                --nav-btn-size: 24px;
                 --nav-edge-offset: 8px;
                 --header-nav-offset: 12px;
             }
 
             #global-nav {
                 flex-direction: row;
-                gap: 6px;
+                gap: 8px;
                 top: calc(env(safe-area-inset-top) + 4px);
                 left: calc(env(safe-area-inset-left) + 4px);
             }
@@ -2160,16 +2162,20 @@
 
             .tab-container {
                 flex-wrap: nowrap;
-                gap: 4px;
+                gap: 6px;
                 padding: 8px 12px 0;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .tab-btn {
-                flex: 1 1 0;
+                flex: 0 0 auto;
+                min-width: 92px;
                 text-align: center;
-                padding: 6px 6px;
-                font-size: 0.72rem;
+                padding: 7px 10px;
+                font-size: 0.8rem;
+                line-height: 1.25;
+                min-height: 32px;
                 white-space: nowrap;
             }
 
@@ -2210,6 +2216,12 @@
             #version-tag {
                 font-size: 0.92rem;
                 padding: 4px 8px;
+            }
+
+            .tab-btn {
+                min-width: 84px;
+                padding: 6px 8px;
+                font-size: 0.74rem;
             }
 
             .screen-content-scroll {

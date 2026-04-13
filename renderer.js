@@ -1135,8 +1135,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sW = s.width * zoomFactor;
         const sH = s.height * zoomFactor;
+        const drawX = Math.round(s.x);
+        const drawY = Math.round(s.y);
 
-        ctx.drawImage(s.img, s.x, s.y, s.width * zoomFactor, s.height * zoomFactor);
+        ctx.drawImage(s.img, drawX, drawY, sW, sH);
 
         if (s.y + sH < -20 || s.x > canvas.width + 20) {
           let newX, newY, found = false, wrapAttempts = 0;
