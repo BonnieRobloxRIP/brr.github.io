@@ -1,0 +1,531 @@
+/* App shell: navigation, footer, boot overlay, screens and the main menu. */
+
+/* --- GLOBAL UI */
+#version-tag {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 9500;
+    padding: 5px 10px;
+    color: var(--highlight);
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+#scroll-top-btn {
+    position: fixed;
+    top: 30px;
+    right: 6px;
+    z-index: 9501;
+    min-width: 56px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+#global-nav {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + var(--nav-edge-offset));
+    left: calc(env(safe-area-inset-left) + var(--nav-edge-offset));
+    z-index: 9990;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-btn {
+    width: var(--nav-btn-size);
+    height: var(--nav-btn-size);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nav-btn-bg);
+    border: 2px solid;
+    border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+    box-shadow: 3px 3px 0 #000;
+    color: var(--text-main);
+    font: inherit;
+    font-size: 1.35rem;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.nav-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+}
+
+.nav-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#power-btn {
+    background: #300;
+}
+
+#power-btn:hover {
+    background: #500;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 9000;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    border-top: 2px solid var(--border-dark);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+/* --- BOOT
+   Everything stays hidden behind the boot overlay until assets are ready. */
+#boot-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    background: #090909;
+    color: #e3e3e3;
+    transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
+}
+
+#boot-overlay img {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    opacity: 0.95;
+}
+
+.boot-title {
+    max-width: min(90vw, 640px);
+    color: var(--highlight);
+    font-size: 1.25rem;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.boot-subtitle {
+    max-width: min(88vw, 560px);
+    min-height: 1.2em;
+    color: #bdbdbd;
+    font-size: 0.86rem;
+    letter-spacing: 0.03em;
+}
+
+body.app-booting .screen,
+body.app-booting #global-nav,
+body.app-booting .footer,
+body.app-booting #version-tag,
+body.app-booting .scanlines,
+body.app-booting #glitch-clone,
+body.app-booting #flicker-overlay {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body.app-ready #boot-overlay {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* --- SCREENS */
+.screen {
+    width: 100vw;
+    height: 100vh;
+    padding-bottom: 40px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.24s ease-out, visibility 0.24s ease-out;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.screen-header {
+    flex-shrink: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 20px 15px var(--header-nav-offset);
+    background: linear-gradient(180deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+    color: var(--header-text);
+    border-bottom: 4px solid var(--border-dark);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.screen-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.screen-title-group h1 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.screen-title-group h2 {
+    margin: 0;
+    font-size: 1.17rem;
+}
+
+/* Side padding matches the header so the fixed nav buttons never cover content. */
+.screen-content-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px var(--header-nav-offset);
+    overscroll-behavior: contain;
+}
+
+/* --- MAIN MENU */
+#main-menu.active {
+    flex-direction: row;
+    gap: 20px;
+    padding: 20px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
+    backdrop-filter: blur(5px);
+}
+
+.left-panel,
+.welcome-panel,
+.socials-panel {
+    border: 4px solid;
+    border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+    box-shadow: 5px 5px 0 #000;
+}
+
+.left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px);
+    padding: 20px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.welcome-panel {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px;
+    background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
+}
+
+.socials-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 15px;
+    background: linear-gradient(180deg, var(--panel-bg-soft) 0%, var(--panel-bg) 100%);
+}
+
+.menu-title {
+    margin: 0 0 20px;
+    color: var(--highlight);
+    font-size: 2rem;
+    text-decoration: underline;
+    text-underline-offset: 8px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.menu-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu-btn-group.grow {
+    flex-grow: 1;
+}
+
+.main-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: var(--input-bg);
+    border: 2px solid var(--border-light);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    color: var(--text-main);
+    font-size: 1.2rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.main-menu-btn:hover {
+    background: var(--highlight);
+    color: var(--bg-main);
+    transform: translateX(5px);
+}
+
+.main-menu-btn .btn-count {
+    margin-left: auto;
+    color: inherit;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.divider {
+    width: 100%;
+    height: 4px;
+    margin: 20px 0;
+    background: var(--border-light);
+    border-bottom: 2px solid #000;
+}
+
+.welcome-header {
+    margin: 0 0 20px;
+    color: var(--highlight);
+    font-size: 4rem;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.welcome-text {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    line-height: 1.5;
+}
+
+.social-link {
+    width: 64px;
+    height: 64px;
+    border: 2px solid transparent;
+    transition: transform 0.1s;
+}
+
+.social-link:hover {
+    transform: scale(1.1);
+    border-color: var(--highlight);
+}
+
+.social-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* --- RESPONSIVE */
+@media (max-width: 1100px) {
+    .welcome-header {
+        font-size: 3rem;
+    }
+
+    .welcome-text {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 900px) {
+    :root {
+        --nav-btn-size: 40px;
+        --nav-edge-offset: 8px;
+        --header-nav-offset: 12px;
+    }
+
+    body {
+        overflow: auto;
+    }
+
+    #global-nav {
+        flex-direction: row;
+        top: calc(env(safe-area-inset-top) + 4px);
+        left: calc(env(safe-area-inset-left) + 4px);
+    }
+
+    .nav-btn {
+        border-width: 1px;
+        box-shadow: 2px 2px 0 #000;
+    }
+
+    #back-btn {
+        font-size: 0.86rem;
+    }
+
+    #version-tag {
+        padding: 3px 7px;
+        font-size: 0.85rem;
+    }
+
+    #scroll-top-btn {
+        top: 24px;
+        right: 4px;
+        min-width: 44px;
+        padding: 3px 6px;
+        font-size: 0.64rem;
+    }
+
+    .footer {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 5px);
+    }
+
+    .screen {
+        height: 100dvh;
+        padding-bottom: 52px;
+    }
+
+    #main-menu.active {
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .left-panel {
+        flex: none;
+        max-height: none;
+        padding: 16px;
+        padding-top: calc(var(--nav-btn-size) + var(--nav-edge-offset) - 16px);
+        overflow: visible;
+    }
+
+    .right-column {
+        gap: 14px;
+    }
+
+    .welcome-panel {
+        padding: 20px;
+    }
+
+    .welcome-header {
+        margin-bottom: 12px;
+        font-size: clamp(2rem, 10vw, 2.8rem);
+    }
+
+    .welcome-text {
+        font-size: 0.96rem;
+    }
+
+    .menu-title {
+        font-size: 1.45rem;
+    }
+
+    .main-menu-btn {
+        gap: 10px;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .btn-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .social-link {
+        width: 54px;
+        height: 54px;
+    }
+
+    .screen-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+        padding: calc(env(safe-area-inset-top) + var(--nav-btn-size) + var(--nav-edge-offset) + 8px) 12px 10px;
+    }
+
+    .screen-title-group {
+        width: 100%;
+    }
+
+    .screen-title-group h1 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+    }
+
+    .screen-title-group h2 {
+        font-size: 0.86rem;
+    }
+
+    .screen-content-scroll {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    .screen-header {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: calc(env(safe-area-inset-top) + 10px) 82px 6px calc((var(--nav-btn-size) * 4) + 30px);
+    }
+
+    .screen-title-group {
+        width: auto;
+    }
+
+    .screen-title-group h1 {
+        font-size: 0.84rem;
+        line-height: 1.15;
+    }
+
+    .screen-title-group h2 {
+        font-size: 0.64rem;
+    }
+
+    .screen-content-scroll {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 520px) {
+    #version-tag {
+        padding: 4px 8px;
+        font-size: 0.92rem;
+    }
+
+    .screen-content-scroll {
+        padding: 10px;
+    }
+
+    .socials-panel {
+        justify-content: space-between;
+    }
+
+    .footer {
+        font-size: 0.7rem;
+    }
+}

@@ -1,0 +1,296 @@
+/* Background canvas, CRT effects, glitches and the rare error screen. */
+
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+body[data-theme='xen']::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 18% 12%, rgba(132, 97, 255, 0.4), transparent 42%),
+        radial-gradient(circle at 84% 78%, rgba(81, 214, 255, 0.35), transparent 36%),
+        radial-gradient(circle at 5% 82%, rgba(115, 224, 255, 0.3), transparent 40%),
+        radial-gradient(circle at 92% 22%, rgba(201, 162, 255, 0.25), transparent 38%),
+        radial-gradient(circle, rgba(200, 200, 255, 0.65) 0 0.8px, transparent 1.2px),
+        radial-gradient(circle, rgba(220, 220, 255, 0.5) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(180, 200, 255, 0.6) 0 0.6px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 90px 90px, 140px 140px, 110px 110px;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 30px 50px, 20px 30px;
+    animation: xenTwinkle1 6s ease-in-out infinite 0s,
+        xenTwinkle2 7s ease-in-out infinite 1s,
+        xenTwinkle3 8s ease-in-out infinite 2s;
+}
+
+@keyframes xenTwinkle1 {
+    0%, 10%, 20%, 100% { opacity: 0.65; }
+    5%, 15% { opacity: 0.15; }
+}
+
+@keyframes xenTwinkle2 {
+    0%, 100% { opacity: 0.5; }
+    25%, 35% { opacity: 0.08; }
+    30% { opacity: 0.4; }
+}
+
+@keyframes xenTwinkle3 {
+    0%, 100% { opacity: 0.6; }
+    40%, 55% { opacity: 0.1; }
+    45% { opacity: 0.55; }
+}
+
+/* --- CRT */
+.scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.42) 50%);
+    background-size: 100% 4px;
+    opacity: 0.42;
+    animation: scanlineMove 0.4s linear infinite;
+    transition: opacity 5s ease-in-out;
+}
+
+@keyframes scanlineMove {
+    from { background-position: 0 0; }
+    to { background-position: 0 4px; }
+}
+
+#flicker-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9996;
+    pointer-events: none;
+    background: black;
+    opacity: 0;
+    mix-blend-mode: hard-light;
+    transition: opacity 0.05s ease-out;
+}
+
+#glitch-clone {
+    position: fixed;
+    inset: 0;
+    z-index: 9995;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.glitch-bar {
+    position: absolute;
+    left: 0;
+    opacity: 0;
+    mix-blend-mode: screen;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.22);
+    transform: translate3d(0, 0, 0);
+    transition: opacity 0.06s ease-out;
+    will-change: transform, opacity;
+}
+
+body.glitch-hit .screen.active,
+body.glitch-hit .footer,
+body.glitch-hit #global-nav {
+    transform: translateX(1px);
+}
+
+body.reduced-motion .scanlines,
+body.reduced-motion::after {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #boot-overlay,
+    .screen {
+        transition: none;
+    }
+}
+
+/* --- RARE SCREEN
+   A fake crash: the page breaks apart (pre-rare overlay), then an error screen shows for a few seconds. */
+#pre-rare-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10006;
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+    background: transparent;
+    transition: background 0.12s steps(2);
+}
+
+#pre-rare-overlay.active {
+    display: block;
+}
+
+#pre-rare-overlay.full-cover {
+    background: #000;
+}
+
+#pre-rare-overlay::before,
+#pre-rare-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s linear;
+}
+
+#pre-rare-overlay::before {
+    background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, rgba(0, 0, 0, 0.06) 2px 4px),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 3px, rgba(255, 255, 255, 0.04) 3px 7px);
+    mix-blend-mode: screen;
+}
+
+#pre-rare-overlay::after {
+    background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+body.pre-rare-distort #pre-rare-overlay::before {
+    opacity: calc(0.08 + var(--pre-rare-progress, 0) * 0.52);
+}
+
+body.pre-rare-distort #pre-rare-overlay::after {
+    opacity: calc(0.12 + var(--pre-rare-progress, 0) * 0.5);
+}
+
+.pre-rare-box {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+}
+
+.pre-rare-box.active {
+    opacity: calc(0.35 + var(--pre-rare-progress, 0) * 0.65);
+    transform: scale(1);
+}
+
+.pre-rare-fragment {
+    position: absolute;
+    overflow: hidden;
+    opacity: 0;
+    mix-blend-mode: screen;
+    filter: contrast(1.1) saturate(0.88);
+    transform: scale(0.94);
+    transition: opacity 0.08s steps(2), transform 0.08s steps(2);
+}
+
+.pre-rare-fragment.active {
+    opacity: calc(0.16 + var(--pre-rare-progress, 0) * 0.54);
+    transform: scale(1);
+}
+
+.pre-rare-fragment .screen {
+    position: absolute;
+    display: flex;
+    pointer-events: none;
+}
+
+body.pre-rare-distort .screen.active,
+body.pre-rare-distort .footer,
+body.pre-rare-distort #global-nav,
+body.pre-rare-distort #version-tag {
+    transform: translate3d(var(--pre-rare-shift-x, 0px), var(--pre-rare-shift-y, 0px), 0) scale(calc(1 + var(--pre-rare-progress, 0) * 0.012));
+    filter: blur(calc(var(--pre-rare-progress, 0) * 1.1px)) contrast(calc(1 + var(--pre-rare-progress, 0) * 0.45));
+    transition: transform 0.06s steps(2), filter 0.08s linear;
+}
+
+body.rare-distorting .screen,
+body.rare-distorting #global-nav,
+body.rare-distorting .footer,
+body.rare-distorting #version-tag {
+    pointer-events: none;
+}
+
+#rare-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10010;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    text-align: center;
+    background-color: var(--rare-solid-bg);
+    background-image: radial-gradient(circle at 50% 44%, var(--rare-overlay-a), transparent 42%);
+    filter: hue-rotate(var(--rare-hue-shift));
+}
+
+#rare-screen.active {
+    display: flex;
+}
+
+#rare-screen::before,
+#rare-screen::after {
+    content: '';
+    position: absolute;
+    inset: -4%;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0px, rgba(0, 0, 0, 0.16) 3px, rgba(255, 255, 255, 0.03) 3px, rgba(255, 255, 255, 0.03) 6px);
+}
+
+#rare-screen::before {
+    opacity: 0.28;
+    filter: saturate(2);
+}
+
+#rare-screen::after {
+    opacity: 0.22;
+    filter: hue-rotate(42deg);
+}
+
+.rare-logo {
+    position: relative;
+    z-index: 2;
+    width: 200px;
+    margin-bottom: 20px;
+}
+
+.rare-title {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 8px;
+    color: var(--rare-title-color);
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.rare-text {
+    position: relative;
+    z-index: 2;
+    color: var(--rare-text-color);
+    font-size: 2rem;
+    text-transform: uppercase;
+    text-shadow:
+        calc(var(--rare-shift-x) * -0.25) 0 rgba(255, 0, 0, 0.8),
+        calc(var(--rare-shift-x) * 0.25) 0 rgba(255, 255, 0, 0.8),
+        0 0 12px rgba(255, 255, 255, 0.25);
+    animation: blink 0.5s step-end infinite;
+}
+
+.rare-subtext {
+    position: relative;
+    z-index: 2;
+    max-width: min(86vw, 620px);
+    margin-top: 10px;
+    color: var(--rare-subtext-color);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}

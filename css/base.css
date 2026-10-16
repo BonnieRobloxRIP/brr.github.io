@@ -1,0 +1,262 @@
+/* Fonts, theme tokens, reset and scrollbars. */
+
+@font-face {
+    font-family: 'Minecraft';
+    src: url('../assets/fonts/minecraft_font.ttf') format('truetype');
+    font-display: block;
+}
+
+/* --- THEMES
+   Dark is the default; the other themes only override what differs. */
+:root,
+body[data-theme='dark'] {
+    --bg-main: #141414;
+    --bg-card: #1f1f1f;
+    --text-main: #f4f4f4;
+    --text-dim: #bcbcbc;
+    --text-muted: #8d8d8d;
+    --header-text: #efefef;
+    --border-light: #787878;
+    --border-dark: #060606;
+    --highlight: #f2f2f2;
+    --accent: #8fd3ff;
+    --input-bg: #0d0d0d;
+    --nav-btn-bg: #0d0d0d;
+    --page-gradient-a: rgba(12, 12, 12, 0.92);
+    --page-gradient-b: rgba(28, 28, 28, 0.96);
+    --page-glow-a: rgba(255, 255, 255, 0.06);
+    --page-glow-b: rgba(255, 255, 255, 0.03);
+    --header-bg-start: #232323;
+    --header-bg-end: #161616;
+    --panel-bg: rgba(15, 15, 15, 0.88);
+    --panel-bg-soft: rgba(24, 24, 24, 0.88);
+    --panel-bg-strong: rgba(10, 10, 10, 0.94);
+    --tab-strip-bg: #242424;
+    --tab-btn-bg: #343434;
+    --tab-btn-text: #dfdfdf;
+    --tab-panel-border: #4f4f4f;
+    --filter-bg: #101010;
+    --filter-text: var(--text-main);
+    --filter-border: var(--border-light);
+    --scroll-track: #090909;
+    --scroll-thumb: #7f7f7f;
+    --scroll-thumb-edge: #d6d6d6;
+    --footer-bg: rgba(0, 0, 0, 0.86);
+    --footer-text: #7c7c7c;
+    --rare-overlay-a: rgba(255, 80, 42, 0.24);
+    --rare-solid-bg: #070707;
+    --rare-title-color: #ff5f5f;
+    --rare-text-color: #ffffff;
+    --rare-subtext-color: rgba(255, 255, 255, 0.86);
+    --rare-shift-x: 0px;
+    --rare-shift-y: 0px;
+    --rare-hue-shift: 0deg;
+    --nav-btn-size: 32px;
+    --nav-edge-offset: 4px;
+    --header-nav-offset: calc(var(--nav-btn-size) + var(--nav-edge-offset) + 16px);
+}
+
+body[data-theme='light'] {
+    --bg-main: #e8e8e8;
+    --bg-card: #f5f5f5;
+    --text-main: #1a1a1a;
+    --text-dim: #4a4a4a;
+    --text-muted: #6a6a6a;
+    --header-text: #1c1c1c;
+    --border-light: #f0f0f0;
+    --border-dark: #7a7a7a;
+    --highlight: #222222;
+    --accent: #0b5f99;
+    --input-bg: #f0f0f0;
+    --nav-btn-bg: #666666;
+    --page-gradient-a: rgba(250, 250, 250, 0.96);
+    --page-gradient-b: rgba(218, 218, 218, 0.96);
+    --page-glow-a: rgba(0, 0, 0, 0.04);
+    --page-glow-b: rgba(0, 0, 0, 0.03);
+    --header-bg-start: #f6f6f6;
+    --header-bg-end: #d9d9d9;
+    --panel-bg: rgba(255, 255, 255, 0.94);
+    --panel-bg-soft: rgba(244, 244, 244, 0.94);
+    --panel-bg-strong: rgba(235, 235, 235, 0.98);
+    --tab-strip-bg: #d9d9d9;
+    --tab-btn-bg: #b6b6b6;
+    --tab-btn-text: #202020;
+    --tab-panel-border: #bdbdbd;
+    --filter-bg: #ffffff;
+    --filter-text: #161616;
+    --filter-border: #888888;
+    --scroll-track: #d5d5d5;
+    --scroll-thumb: #9f9f9f;
+    --scroll-thumb-edge: #ffffff;
+    --footer-bg: rgba(232, 232, 232, 0.94);
+    --footer-text: #4e4e4e;
+    --rare-overlay-a: rgba(255, 255, 255, 0.2);
+    --rare-solid-bg: #1b1b1b;
+    --rare-title-color: #ff7878;
+    --rare-subtext-color: rgba(255, 255, 255, 0.9);
+}
+
+body[data-theme='blackmesa'] {
+    --bg-main: #14100e;
+    --bg-card: #1f1a17;
+    --text-main: #f2efe9;
+    --text-dim: #c9b8a6;
+    --text-muted: #9e8b76;
+    --header-text: #f4efe7;
+    --border-light: #f0811a;
+    --border-dark: #0c0705;
+    --highlight: #f5811f;
+    --accent: #ffc27a;
+    --input-bg: rgba(9, 18, 37, 0.22);
+    --nav-btn-bg: #2d2621;
+    --page-gradient-a: rgba(20, 14, 10, 0.94);
+    --page-gradient-b: rgba(7, 7, 7, 0.97);
+    --page-glow-a: rgba(245, 129, 31, 0.16);
+    --page-glow-b: rgba(255, 179, 71, 0.05);
+    --header-bg-start: #2d2825;
+    --header-bg-end: #191412;
+    --panel-bg: rgba(22, 18, 16, 0.9);
+    --panel-bg-soft: rgba(32, 26, 23, 0.92);
+    --panel-bg-strong: rgba(18, 14, 12, 0.96);
+    --tab-strip-bg: #211b17;
+    --tab-btn-bg: #2d2621;
+    --tab-btn-text: #f1e2d1;
+    --tab-panel-border: #f0811a;
+    --filter-bg: rgba(18, 14, 12, 0.94);
+    --filter-text: #f7f0e6;
+    --filter-border: #f0811a;
+    --scroll-track: #1a120d;
+    --scroll-thumb: #f0811a;
+    --scroll-thumb-edge: #ffd08b;
+    --footer-bg: rgba(14, 10, 8, 0.92);
+    --footer-text: #c48249;
+    --rare-solid-bg: #0f0a08;
+    --rare-title-color: #ffb15a;
+    --rare-text-color: #ffe6c7;
+    --rare-subtext-color: rgba(255, 224, 188, 0.88);
+}
+
+body[data-theme='xen'] {
+    --bg-main: #0a1023;
+    --bg-card: #121b36;
+    --text-main: #eef3ff;
+    --text-dim: #bfd0ff;
+    --text-muted: #8fa0d6;
+    --header-text: #eff5ff;
+    --border-light: #6d7dff;
+    --border-dark: #040817;
+    --highlight: #73e0ff;
+    --accent: #c1a2ff;
+    --input-bg: #0d1630;
+    --nav-btn-bg: #1a2952;
+    --page-gradient-a: rgba(11, 13, 48, 0.95);
+    --page-gradient-b: rgba(5, 21, 63, 0.97);
+    --page-glow-a: rgba(132, 97, 255, 0.24);
+    --page-glow-b: rgba(81, 214, 255, 0.12);
+    --header-bg-start: #171f43;
+    --header-bg-end: #0d1430;
+    --panel-bg: rgba(10, 17, 42, 0.9);
+    --panel-bg-soft: rgba(16, 24, 58, 0.92);
+    --panel-bg-strong: rgba(8, 13, 34, 0.97);
+    --tab-strip-bg: #141b3c;
+    --tab-btn-bg: #24306a;
+    --tab-btn-text: #e6eeff;
+    --tab-panel-border: #5467df;
+    --filter-bg: rgba(10, 17, 42, 0.96);
+    --filter-text: #eef3ff;
+    --filter-border: #5668ef;
+    --scroll-track: #0b1330;
+    --scroll-thumb: #576ded;
+    --scroll-thumb-edge: #b7c4ff;
+    --footer-bg: rgba(7, 10, 29, 0.9);
+    --footer-text: #94a7df;
+    --rare-overlay-a: rgba(50, 223, 255, 0.22);
+    --rare-solid-bg: #010616;
+    --rare-title-color: #8be6ff;
+    --rare-text-color: #eef3ff;
+    --rare-subtext-color: rgba(216, 227, 255, 0.9);
+}
+
+/* --- RESET */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    background:
+        radial-gradient(circle at 18% 12%, var(--page-glow-a), transparent 42%),
+        radial-gradient(circle at 84% 78%, var(--page-glow-b), transparent 36%),
+        linear-gradient(180deg, var(--page-gradient-a), var(--page-gradient-b));
+    background-color: var(--bg-main);
+    font-family: 'Minecraft', monospace;
+    color: var(--text-main);
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+}
+
+a {
+    color: inherit;
+}
+
+img {
+    image-rendering: pixelated;
+}
+
+h1,
+h2,
+h3 {
+    font-weight: normal;
+}
+
+code {
+    font-family: inherit;
+}
+
+:focus-visible {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+}
+
+/* --- SCROLLBAR */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+    background: var(--scroll-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scroll-thumb);
+    border: 2px solid var(--scroll-thumb-edge);
+    border-right-color: var(--border-light);
+    border-bottom-color: var(--border-light);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+    border-left: 2px solid var(--border-dark);
+}
